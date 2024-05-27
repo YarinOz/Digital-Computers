@@ -95,15 +95,19 @@ void disable_interrupts(){
 //---------------------------------------------------------------------
 	if(PBsArrIntPend & PB0){
 	  state = state1;
+	  flag1 = !flag1;
 	  PBsArrIntPend &= ~PB0;
         }
         else if(PBsArrIntPend & PB1){
 	  state = state2;
 	  PBsArrIntPend &= ~PB1; 
         }
-	else if(PBsArrIntPend & PB2){ 
+		else if(PBsArrIntPend & PB2){
+	  state = state3;
+	  PBsArrIntPend &= ~PB2; 
+        }
+	else { 
 	  state = state0;
-	  PBsArrIntPend &= ~PB2;
         }
 //---------------------------------------------------------------------
 //            Exit from a given LPM 
