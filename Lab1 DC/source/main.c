@@ -25,7 +25,7 @@ void main(void){
 	  case state1:  // enable pb0 interrupt to switch to -- or ++
 		disable_interrupts();
 		delay(LEDs_SHOW_RATE);	// delay of 62.5 [ms]
-		counter1 = bin_counter(flag1, counter1); // count up or down and save the last state
+		// counter1 = bin_counter(flag1, counter1); // count up or down and save the last state
 		enable_interrupts();
 		break;
 		 

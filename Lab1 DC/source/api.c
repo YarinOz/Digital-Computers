@@ -25,12 +25,17 @@ void printArr2SWs(char Arr[], int size, unsigned int rate){
 // count up or down and save the last state
 //--------------------------------------------------------------------
 char bin_counter(int* flag, char last_count){
-	if (flag==1){
-		last_count++;
+	(*flag) ^= (*flag);
+	for (int i=0; i<8; i++){
+		if (*flag==1){
+			last_count++;
+		}
+		else if (*flag==0){
+			last_count--;
+		}
+		delay(LEDs_SHOW_RATE);	// delay of 62.5 [ms]
 	}
-	else if (flag==0){
-		last_count--;
-	}
+	state = state0;
 	return last_count;
 }
 
