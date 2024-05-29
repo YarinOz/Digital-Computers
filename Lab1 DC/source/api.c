@@ -22,11 +22,18 @@ void printArr2SWs(char Arr[], int size, unsigned int rate){
 	}
 }
 //--------------------------------------------------------------------
-//            Zero out the LEDs array
+// count up or down and save the last state
 //--------------------------------------------------------------------
-void zeroLEDs(void){
-	LEDsArrPort = 0x00;
+char bin_counter(int* flag, char last_count){
+	if (flag==1){
+		last_count++;
+	}
+	else if (flag==0){
+		last_count--;
+	}
+	return last_count;
 }
+
 
 
  
