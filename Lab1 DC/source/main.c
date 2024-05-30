@@ -1,3 +1,4 @@
+// #define _MSP430FG4619_  // define the lab kit
 #include  "../header/api.h"    		// private library - API layer
 #include  "../header/app.h"    		// private library - APP layer
 #ifdef _MSP430FG4619_
@@ -38,7 +39,7 @@ void main(void){
 	  case state2:
 		disable_interrupts();
 		delay(LEDs_SHOW_RATE);		// delay of 62.5 [ms]
-                index2 = Bedilugim(index2);
+		index2 = Bedilugim(index2); // bedilugim, skip a single bit from right to left and save last state
 		enable_interrupts();
 		break;
 

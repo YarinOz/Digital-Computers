@@ -21,11 +21,11 @@ void GPIOconfig(void){
   // SWsArrPortDir &= ~0x0F;
   
   // PushButtons Setup
+  PBsArrPortOut &= ~0x80;          // 2.7 output , 2.0-2.6 input
   PBsArrPortSel &= ~0xFF;
-  // PBsArrPortDir &= ~0x80;   // previously
-  PBsArrPortDir = 0x80;           // 2.7 output , 2.0-2.6 input
+  PBsArrPortDir = 0x80;            // 2.7 output , 2.0-2.6 input
   PBsArrIntEdgeSel |= 0x03;  	     // pull-up mode
-  PBsArrIntEdgeSel &= ~0xFC;         // pull-down mode
+  PBsArrIntEdgeSel &= ~0xFC;       // pull-down mode
   PBsArrIntEn |= 0x7F;
   PBsArrIntPend &= ~0xFF;            // clear pending interrupts 
   

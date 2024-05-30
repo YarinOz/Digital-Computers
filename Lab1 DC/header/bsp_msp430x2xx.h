@@ -21,7 +21,7 @@
 
 // PushButtons abstraction
 #define PBsArrPort	       P2IN 
-#define PORT2OUT	       P2OUT
+#define PBsArrPortOut	   P2OUT
 #define PBsArrIntPend	   P2IFG 
 #define PBsArrIntEn	       P2IE
 #define PBsArrIntEdgeSel   P2IES

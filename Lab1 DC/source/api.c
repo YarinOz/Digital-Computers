@@ -37,8 +37,8 @@ char bin_counter(int* flag, char last_count){
 		else if ((*flag)==0){
 			last_count--;
 		}
-                print2LEDs(last_count);
-                delay(LEDs_SHOW_RATE);	// delay of 0.5 [s]
+        print2LEDs(last_count);
+        delay(LEDs_SHOW_RATE);	// delay of 0.5 [s]
 	}
 	state = state0;
 	return last_count;
@@ -47,18 +47,22 @@ char bin_counter(int* flag, char last_count){
 // bedilugim, skip a single bit from right to left
 //--------------------------------------------------------------------
 char Bedilugim(char last_count){
-        if (last_count&0x01){
+    int left = 14;
+    if (last_count&0x01){
         print2LEDs(last_count);
+        left--;
         delay(LEDs_SHOW_RATE);
-        }
-	for (int i=0; i<13; i++){
+    }
+	while(left){
           if (last_count & 0x80){ // if reached 256
               last_count=1;
               print2LEDs(last_count);
+              left--;
               delay(LEDs_SHOW_RATE);
           }
           last_count = (last_count*2);
           print2LEDs(last_count);
+          left--;
           delay(LEDs_SHOW_RATE);	// delay of 0.5 [s]
 	}
 	state = state0;
