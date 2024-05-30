@@ -1,4 +1,9 @@
 #include  "../header/halGPIO.h"     // private library - HAL layer
+#ifdef _MSP430FG4619_
+#include "../header/bsp_msp430x4xx.h" //lab kit
+#else
+#include "../header/bsp_msp430x2xx.h" //pesronal kit
+#endif
 
 //--------------------------------------------------------------------
 //             System Configuration  

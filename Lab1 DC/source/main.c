@@ -1,5 +1,10 @@
 #include  "../header/api.h"    		// private library - API layer
 #include  "../header/app.h"    		// private library - APP layer
+#ifdef _MSP430FG4619_
+#include "../header/bsp_msp430x4xx.h" //lab kit
+#else
+#include "../header/bsp_msp430x2xx.h" //pesronal kit
+#endif
 
 enum FSMstate state;
 enum SYSmode lpm_mode;
@@ -39,7 +44,7 @@ void main(void){
 
 	  case state3:
 		delay(LEDs_SHOW_RATE);		// delay of 62.5 [ms]
-		PWM();
+		genPWM();
 		break;
 		
 	  case state4: // lab case RT

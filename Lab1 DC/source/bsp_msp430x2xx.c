@@ -1,5 +1,8 @@
-#include  "../header/bsp.h"    // private library - BSP layer
-
+#ifdef _MSP430FG4619_
+#include "../header/bsp_msp430x4xx.h" //lab kit
+#else
+#include "../header/bsp_msp430x2xx.h" //pesronal kit
+#endif
 //-----------------------------------------------------------------------------  
 //           GPIO congiguration
 //-----------------------------------------------------------------------------
