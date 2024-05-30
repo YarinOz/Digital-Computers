@@ -64,31 +64,21 @@ char Bedilugim(char last_count){
 // PWM function DC-75% freq-4KHz
 //--------------------------------------------------------------------
 void genPWM(void) {
-    // Stop Timer_A
-    TA0CTL = TASSEL_2 + MC_0; // SMCLK, stop mode
-
-    // Configure Timer_A
-    TA0CCR0 = PWM_PERIOD;      // Set period for 4kHz
-    TA0CCTL1 = OUTMOD_7;       // Reset/Set mode
-    TA0CCR1 = PWM_DUTY_CYCLE;  // Set duty cycle to 75%
-
-    // Start Timer_A in up mode
-    TA0CTL = TASSEL_2 + MC_1;  // SMCLK, up mode
-	
+    
     while (1) {
         if (state == state3) {
-            // Output PWM signal on P2.7
-            setPinState(P2, 7, HIGH);
+            // Output PWM signal on P2.7 // 3ms high, 1ms low
+            PORT2OUT |= 0x80;
+            delay(0x189);
+            PORT2OUT &= ~0x80;
+            delay(0x83);
         } else {
             // Stop PWM and reset state
-            setPinState(P2, 7, LOW);
-            state = state0;
+            PORT2OUT &= ~0x80;
+            // state = state0;
             break; // Exit the loop
         }
     }
-
-    // Stop Timer_A once we exit state3
-    TA0CTL = TASSEL_2 + MC_0; // SMCLK, stop mode
 }
     
   
