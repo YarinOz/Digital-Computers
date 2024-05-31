@@ -29,8 +29,9 @@ void printArr2SWs(char Arr[], int size, unsigned int rate){
 // count up or down and save the last state
 //--------------------------------------------------------------------
 char bin_counter(int* flag, char last_count){
+	int i;
 	(*flag) = 1-(*flag);
-	for (int i=0; i<20; i++){
+	for (i=0; i<20; i++){
 		if ((*flag)==1){
 			last_count++;
 		}
