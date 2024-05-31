@@ -1,5 +1,5 @@
-#ifndef _bsp_msp430x4xx_H_
-#define _bsp_msp430x4xx_H_
+#ifndef _BSP_MSP430X4XX_H_
+#define _BSP_MSP430X4XX_H_
 
 // #include  <msp430g2553.h>          // MSP430x2xx
 #include  <msp430xG46x.h>  // MSP430x4xx
@@ -21,7 +21,7 @@
 
 // PushButtons abstraction
 #define PBsArrPort	       P2IN 
-#define PORT2OUT	       P2OUT
+#define PBsArrPortOut	   P2OUT
 #define PBsArrIntPend	   P2IFG 
 #define PBsArrIntEn	       P2IE
 #define PBsArrIntEdgeSel   P2IES

@@ -1,5 +1,5 @@
-#ifndef _bsp_msp430x2xx_H_
-#define _bsp_msp430x2xx_H_
+#ifndef _BSP_MSP430X2XX_H_
+#define _BSP_MSP430X2XX_H_
 
 #include  <msp430g2553.h>          // MSP430x2xx
 // #include  <msp430xG46x.h>  // MSP430x4xx

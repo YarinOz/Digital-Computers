@@ -76,13 +76,13 @@ void genPWM(void) {
     while (1) {
         if (state == state3) {
             // Output PWM signal on P2.7 // 3ms high, 1ms low
-            PORT2OUT |= 0x80;
-            delay(0x189);
-            PORT2OUT &= ~0x80;
-            delay(0x83);
+            PBsArrPortOut |= 0x80;
+            delay(0x11);
+            PBsArrPortOut &= ~0x80;
+            delay(0x03);
         } else {
             // Stop PWM and reset state
-            PORT2OUT &= ~0x80;
+            PBsArrPortOut &= ~0x80;
             // state = state0;
             break; // Exit the loop
         }
