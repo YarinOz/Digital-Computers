@@ -1,6 +1,6 @@
 // #define _MSP430FG4619_ 
 #include  "../header/halGPIO.h"     // private library - HAL layer
-#ifdef _MSP430FG4619_
+#ifdef __MSP430FG4619__
 #include "../header/bsp_msp430x4xx.h" //lab kit
 #else
 #include "../header/bsp_msp430x2xx.h" //pesronal kit
@@ -92,9 +92,13 @@ void disable_interrupts(){
 //*********************************************************************
 //            Port2 Interrupt Service Rotine
 //*********************************************************************
+#ifdef __MSP430FG4619__
+#pragma vector=PORT1_VECTOR
+  __interrupt void PBs_handler(void){
+#else
 #pragma vector=PORT2_VECTOR
   __interrupt void PBs_handler(void){
-   
+#endif
 	delay(debounceVal);
 //---------------------------------------------------------------------
 //            selector of transition between states
