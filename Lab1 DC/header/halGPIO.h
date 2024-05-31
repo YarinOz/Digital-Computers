@@ -1,7 +1,7 @@
 #ifndef _halGPIO_H_
 #define _halGPIO_H_
 
-#ifdef _MSP430FG4619_
+#ifdef __MSP430FG4619__
 #include "../header/bsp_msp430x4xx.h" //lab kit
 #else
 #include "../header/bsp_msp430x2xx.h" //pesronal kit
