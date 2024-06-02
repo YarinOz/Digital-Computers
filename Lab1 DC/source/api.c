@@ -89,6 +89,67 @@ void genPWM(void) {
         }
     }
 }
+//--------------------------------------------------------------------
+// PWM function DC-0-100% freq-2KHz
+//--------------------------------------------------------------------
+void pwm(int Nfreq, int dutyCycle) {
+    while (1) {
+        if (state == state4) {
+            switch(dutyCycle){
+                case 0:
+                    break;
+                case 25:
+                    PBsArrPortOut |= 0x80;
+                    delay(0x06);
+                    PBsArrPortOut &= ~0x80;
+                    delay(0x22);
+                    break;
+                case 50:
+                    PBsArrPortOut |= 0x80;
+                    delay(0x14);
+                    PBsArrPortOut &= ~0x80;
+                    delay(0x14);
+                    break;
+                case 75:
+                    PBsArrPortOut |= 0x80;
+                    delay(0x22);
+                    PBsArrPortOut &= ~0x80;
+                    delay(0x06);
+                    break;
+                case 100:
+                    PBsArrPortOut |= 0x80;
+                    break;
+            }
+//            // Output PWM signal on P2.7 // 3ms high, 1ms low
+//            PBsArrPortOut |= 0x80;
+//            delay(0x22);
+//            PBsArrPortOut &= ~0x80;
+//            delay(0x06);
+        } else {
+            // Stop PWM and reset state
+            PBsArrPortOut &= ~0x80;
+            // state = state0;
+            break; // Exit the loop
+        }
+    }
+}
+//----------------------------------------------------------------------
+// DC map : mapping switches state to duty-cycle
+//----------------------------------------------------------------------
+int DCmap(unsigned char SWstate){
+    switch(SWstate){
+        case 0x01:
+            return 0;
+        case 0x02:
+            return 25;
+        case 0x03:
+            return 50;
+        case 0x04:
+            return 75;
+        case 0x05:
+            return 100;
+    }
+}
     
   
 
