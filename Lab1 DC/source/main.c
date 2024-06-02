@@ -14,6 +14,8 @@ char counter1 = 0;
 char index2 = 1;
 int flag1 = 0;
 int* flag1ptr = &flag1;
+int Nfreq;
+
 
 void main(void){
   
@@ -49,9 +51,8 @@ void main(void){
 		break;
 		
 	  case state4: // lab case RT
-	  	disable_interrupts();
 		delay(LEDs_SHOW_RATE);		// delay of 62.5 [ms]
-		enable_interrupts();			
+        pwm(Nfreq);       // generate PWM
 		break;
 	}
   }

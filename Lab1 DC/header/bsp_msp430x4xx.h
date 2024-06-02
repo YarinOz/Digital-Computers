@@ -15,10 +15,10 @@
 #define LEDsArrPortSel     P9SEL
 
 // Switches abstraction
-#define SWsArrPort         P2IN
-#define SWsArrPortDir      P2DIR
-#define SWsArrPortSel      P2SEL
-#define SWmask             0x0F
+#define SWsArrPort         P1IN
+#define SWsArrPortDir      P1DIR
+#define SWsArrPortSel      P1SEL
+#define SWmask             0x7F
 
 // PushButtons abstraction
 #define PBsArrPort	       P1IN 

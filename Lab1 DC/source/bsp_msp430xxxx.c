@@ -17,16 +17,16 @@ void GPIOconfig(void){
   LEDsArrPort = 0x00;				  // clear all LEDs
   
   // Switches Setup
-   SWsArrPortSel &= ~0x0F;
-   SWsArrPortDir &= ~0x0F;
+//   SWsArrPortSel &= ~0xF0;
+//   SWsArrPortDir &= ~0x70;
   
   // PushButtons Setup
   PBsArrPortOut &= ~0x80;          // 2.7 output , 2.0-2.6 input
   PBsArrPortSel &= ~0xFF;
-  PBsArrPortDir = 0x80;            // 2.7 output , 2.0-2.6 input
+  PBsArrPortDir = 0x80;            // 2.7 output , 2.0-2.6 input PB-SW
   PBsArrIntEdgeSel |= 0x03;  	     // pull-up mode
   PBsArrIntEdgeSel &= ~0xFC;       // pull-down mode
-  PBsArrIntEn |= 0x7F;
+  PBsArrIntEn |= 0x0F;
   PBsArrIntPend &= ~0xFF;            // clear pending interrupts 
   
   _BIS_SR(GIE);                     // enable interrupts globally
