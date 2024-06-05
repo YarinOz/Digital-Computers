@@ -31,10 +31,10 @@ void main(void){
 		enterLPM(lpm_mode); 
 		break;
 
-	  case state1:  // enable pb0 interrupt to switch to -- or ++
+	  case state1:  // counter measuring external signal's (wave-gen) frequency, show reslut in LCD [fin=xxxx Hz](left up)
 		disable_interrupts();
-		delay(LEDs_SHOW_RATE);	// delay of 62.5 [ms]
-		counter1 = bin_counter(flag1ptr, counter1); // count up or down and save the last state
+		// delay(LEDs_SHOW_RATE);	// delay of 62.5 [ms]
+		// counter1 = bin_counter(flag1ptr, counter1); // count up or down and save the last state
 		enable_interrupts();
 		break;
 		 

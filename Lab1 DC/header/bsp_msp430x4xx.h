@@ -14,13 +14,6 @@
 #define LEDsArrPortDir     P9DIR
 #define LEDsArrPortSel     P9SEL
 
-// LCDs abstraction (temp)
-#define LCD_DATA_WRITE     P1OUT
-#define LCD_DATA_DIR       P1DIR
-#define LCD_DATA_READ      P1IN
-#define LCD_DATA_SEL       P1SEL
-#define LCD_CTL_SEL        P2SEL
-
 // Switches abstraction
 #define SWsArrPort         P1IN
 #define SWsArrPortDir      P1DIR
@@ -42,9 +35,7 @@
 
 
 extern void GPIOconfig(void);
-extern void TIMER0_A0_config(void);
-extern void TIMER1_A2_config(void);
-extern void TIMER1_A1_config(void);
+extern void TIMERconfig(void);
 extern void ADCconfig(void);
 
 #endif

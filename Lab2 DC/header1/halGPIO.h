@@ -25,6 +25,9 @@ extern void enable_interrupts();
 extern void disable_interrupts();
 
 extern __interrupt void PBs_handler(void);
+// extern __interrupt void Timer_A0(void);
+// extern __interrupt void Timer_A1(void);
+extern __interrupt void ADC10_ISR(void);
 
 #endif
 
