@@ -119,6 +119,30 @@ void disable_interrupts(){
 	  state = state4;
 	  PBsArrIntPend &= ~PB3;
         }
+//*********************************************************************
+//            TimerA0 Interrupt Service Routine
+//*********************************************************************
+#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+#pragma vector = TIMER0_A0_VECTOR
+__interrupt void Timer_A (void)
+#elif defined(__GNUC__)
+void __attribute__ ((interrupt(TIMER0_A0_VECTOR))) Timer_A (void)
+#else
+#error Compiler not supported!
+#endif
+{
+    LPM0_EXIT;
+    TACTL = MC_0+TACLR;
+}
+
+//*********************************************************************
+//            ADC10 Vector Interrupt Service Routine
+//*********************************************************************
+#pragma vector = ADC10_VECTOR
+__interrupt void ADC10_ISR (void)
+{
+    __bic_SR_register_on_exit(CPUOFF);
+}
 //---------------------------------------------------------------------
 //            Exit from a given LPM 
 //---------------------------------------------------------------------	
