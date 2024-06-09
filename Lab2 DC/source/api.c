@@ -9,7 +9,7 @@ unsigned int adcCaptureValues[ADC_NUMBER_CAPTURES];
 unsigned int adcCapturePointer;
 
 //-------------------------------------------------------------
-//              Frequency Measurement
+//      Frequency Measurement fin=SMCLK/#(SM cycles between 2 Rising edges)
 //-------------------------------------------------------------
 void FreqMeas(){
         WDTCTL = WDTPW + WDTHOLD;
@@ -18,7 +18,7 @@ void FreqMeas(){
         unsigned int real_freq;
         char strFreq[6] = {'\0'};
 
-        write_freq_tmp_LCD(); // Write template of Frequency
+        freq_template_LCD(); // Write template of Frequency
         TA1CTL |= TASSEL_2 + MC_2 + TACLR;         //start Timer
         while(state == state1){
             disable_interrupts();
@@ -28,12 +28,12 @@ void FreqMeas(){
             __bis_SR_register(LPM0_bits + GIE);              // Enter LPM0
             if(REdge1 == 0 && REdge2 == 0)  // first time
               continue;
-            error = 1.05915;  // after calc the error
+            error = 1.05915;  // error value (need to calculate)
             N_SMCLK = 0.9*(REdge2 - REdge1)*error;
             freq = SMCLK_FREQ / N_SMCLK;       // Calculate Frequency
-            real_freq = (unsigned int) freq ;
-            if (real_freq == 65535)  // delete later
-                continue;
+            real_freq = (unsigned int) freq ;  // int casting
+            // if (real_freq == 65535)            // delete later
+            //     continue;
             sprintf(strFreq, "%d", real_freq);
             // Wipe freuqncy template
             lcd_home();
@@ -57,9 +57,9 @@ void FreqMeas(){
         TA1CTL = MC_0 ; // Stop Timer
 }
 //-------------------------------------------------------------
-//                         CountDown
+//                         StopWatch
 //-------------------------------------------------------------
-void CountDown(){
+void StopWatch(){
       int i;
       char dozen = 0x35;  // '5'
       char unity = 0x39; // '9'
@@ -94,7 +94,7 @@ void CountDown(){
       }
 }
 //-------------------------------------------------------------
-//              StartTimer For Count Down
+//              StartTimer For StopWatch
 //-------------------------------------------------------------
 void startTimerA0(){
     TACCR0 = 0xFFFF;  // Timer Cycles - max
@@ -105,7 +105,7 @@ void startTimerA0(){
 //-------------------------------------------------------------
 //              Tone Generator
 //-------------------------------------------------------------
-void tone_generator(){
+void GenTones(){
     TA1CTL = TASSEL_2 + MC_1;                  // SMCLK, upmode
     while(state == state3){
         ADC10CTL0 |= ENC + ADC10SC;             // Start sampling
@@ -121,45 +121,44 @@ void tone_generator(){
 
         TA1CCR0 = period_to_pwm;
         TA1CCR1 = (int) period_to_pwm/2;
-
     }
     TA1CTL = MC_0 ; // Stop Timer
 }
 //-------------------------------------------------------------
 //              Signal Shape
 //-------------------------------------------------------------
-void Signal_shape(){
-        while(state == state4){
-            ADC10CTL0 |= ENC + ADC10SC;             // Start sampling
-            __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
-            ADC10CTL0 &= ~ADC10ON; // Don't get into interrupt
-            char * strLCD;
-            if(adcCapturePointer < ADC_NUMBER_CAPTURES) adcCaptureValues[adcCapturePointer++] = ADC10MEM;
-            else {
-                adcCapturePointer = 0;
-                unsigned int i;
-                unsigned int low_val_counter;
-                unsigned int high_val_counter;
-                unsigned int tri_counter;
-                low_val_counter = 0;
-                high_val_counter = 0;
-                tri_counter = 0;
-                for (i=1;i<ADC_NUMBER_CAPTURES-1;i++){
-                    //pwm
-                    if(adcCaptureValues[i] <= 5) low_val_counter ++;
-                    else if (adcCaptureValues[i] >= 800) high_val_counter ++;
-                    // tri
-                    if(abs(2*adcCaptureValues[i]-adcCaptureValues[i-1]-adcCaptureValues[i+1])<3) tri_counter++;
+// void Signal_shape(){
+//         while(state == state4){
+//             ADC10CTL0 |= ENC + ADC10SC;             // Start sampling
+//             __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
+//             ADC10CTL0 &= ~ADC10ON; // Don't get into interrupt
+//             char * strLCD;
+//             if(adcCapturePointer < ADC_NUMBER_CAPTURES) adcCaptureValues[adcCapturePointer++] = ADC10MEM;
+//             else {
+//                 adcCapturePointer = 0;
+//                 unsigned int i;
+//                 unsigned int low_val_counter;
+//                 unsigned int high_val_counter;
+//                 unsigned int tri_counter;
+//                 low_val_counter = 0;
+//                 high_val_counter = 0;
+//                 tri_counter = 0;
+//                 for (i=1;i<ADC_NUMBER_CAPTURES-1;i++){
+//                     //pwm
+//                     if(adcCaptureValues[i] <= 5) low_val_counter ++;
+//                     else if (adcCaptureValues[i] >= 800) high_val_counter ++;
+//                     // tri
+//                     if(abs(2*adcCaptureValues[i]-adcCaptureValues[i-1]-adcCaptureValues[i+1])<3) tri_counter++;
 
 
-                }
-                if (low_val_counter > 5 && high_val_counter > 5) strLCD = "pwm";
-                else if (tri_counter > 16) strLCD = "tri";
-                else strLCD = "sin";
-                DelayMs(500);
-                write_signal_shape_tmp_LCD();
-                lcd_puts(strLCD);
-            }
+//                 }
+//                 if (low_val_counter > 5 && high_val_counter > 5) strLCD = "pwm";
+//                 else if (tri_counter > 16) strLCD = "tri";
+//                 else strLCD = "sin";
+//                 DelayMs(500);
+//                 write_signal_shape_tmp_LCD();
+//                 lcd_puts(strLCD);
+//             }
 
-        }
-}
+//         }
+// }

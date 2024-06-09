@@ -34,28 +34,7 @@ void delay(unsigned int t){  //
 	volatile unsigned int i;
 	
 	for(i=t; i>0; i--);
-}
-//---------------------------------------------------------------------
-//            General Function - No need
-//---------------------------------------------------------------------
-// void int2str(char *str, unsigned int num){
-//     int strSize = 0;
-//     long tmp = num, len = 0;
-//     int j;
-//     // Find the size of the intPart by repeatedly dividing by 10
-//     while(tmp){
-//         len++;
-//         tmp /= 10;
-//     }
-
-//     // Print out the numbers in reverse
-//     for(j = len - 1; j >= 0; j--){
-//         str[j] = (num % 10) + '0';
-//         num /= 10;
-//     }
-//     strSize += len;
-//     str[strSize] = '\0';
-// }
+}  
 //---------------------------------------------------------------------
 //            Enter from LPM0 mode
 //---------------------------------------------------------------------
@@ -227,21 +206,16 @@ void lcd_strobe(){
 // Delay usec functions
 //******************************************************************
 void DelayUs(unsigned int cnt){
-
     unsigned char i;
     for(i=cnt ; i>0 ; i--) asm("nop"); // tha command asm("nop") takes raphly 1usec
-
 }
 //******************************************************************
 // Delay msec functions
 //******************************************************************
 void DelayMs(unsigned int cnt){
-
     unsigned char i;
     for(i=cnt ; i>0 ; i--) DelayUs(1000); // tha command asm("nop") takes raphly 1usec
-
 }
-
 //*********************************************************************
 //            TimerA0 Interrupt Service Routine
 //*********************************************************************
@@ -359,10 +333,10 @@ __interrupt void ADC10_ISR (void)
 //---------------------------------------------------------------------
 //            selector of transition between states
 //---------------------------------------------------------------------
-      if(PB3sArrIntPend & PB3){    // For Main Lab
-          state = state4;
-          PB3sArrIntPend &= ~PB3;
-      }
+    //   if(PB3sArrIntPend & PB3){    // For Main Lab
+    //       state = state4;
+    //       PB3sArrIntPend &= ~PB3;
+    //   }
 //---------------------------------------------------------------------
 //            Exit from a given LPM
 //---------------------------------------------------------------------

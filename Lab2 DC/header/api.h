@@ -3,10 +3,10 @@
 
 #include  "../header/halGPIO.h"     // private library - HAL layer
 
-extern void CountDown();
+extern void StopWatch();
 extern void startTimerA0();
 extern void FreqMeas();
-extern void tone_generator();
-extern void Signal_shape();
+extern void GenTones();
+// extern void Signal_shape();
 
 #endif
