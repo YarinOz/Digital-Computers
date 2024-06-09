@@ -14,12 +14,12 @@ void main(void){
 
   while(1){
 	switch(state){
-	  case state0: //idle
+	  case state0: //idle state
 	      enterLPM(mode0);
 	      break;
 		 
 	  case state1: //PB0 
-	    freqMeas();  // Frequency Measurements
+	    FreqMeas();  // Frequency Measurements
 	    break;
 
 	  case state2: //PB1
@@ -35,7 +35,7 @@ void main(void){
         tone_generator();
 		break;
                 
-      case state4: //PB3 For Final_Lab
+      case state4: //PB3 RT
         Signal_shape();
 		break;
 	}

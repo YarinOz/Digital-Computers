@@ -38,24 +38,24 @@ void delay(unsigned int t){  //
 //---------------------------------------------------------------------
 //            General Function - No need
 //---------------------------------------------------------------------
-void int2str(char *str, unsigned int num){
-    int strSize = 0;
-    long tmp = num, len = 0;
-    int j;
-    // Find the size of the intPart by repeatedly dividing by 10
-    while(tmp){
-        len++;
-        tmp /= 10;
-    }
+// void int2str(char *str, unsigned int num){
+//     int strSize = 0;
+//     long tmp = num, len = 0;
+//     int j;
+//     // Find the size of the intPart by repeatedly dividing by 10
+//     while(tmp){
+//         len++;
+//         tmp /= 10;
+//     }
 
-    // Print out the numbers in reverse
-    for(j = len - 1; j >= 0; j--){
-        str[j] = (num % 10) + '0';
-        num /= 10;
-    }
-    strSize += len;
-    str[strSize] = '\0';
-}
+//     // Print out the numbers in reverse
+//     for(j = len - 1; j >= 0; j--){
+//         str[j] = (num % 10) + '0';
+//         num /= 10;
+//     }
+//     strSize += len;
+//     str[strSize] = '\0';
+// }
 //---------------------------------------------------------------------
 //            Enter from LPM0 mode
 //---------------------------------------------------------------------
@@ -83,7 +83,6 @@ void enable_interrupts(){
 void disable_interrupts(){
   _BIC_SR(GIE);
 }
-
 //---------------------------------------------------------------------
 //            LCD
 //---------------------------------------------------------------------
@@ -147,7 +146,7 @@ void lcd_puts(const char * s){
 //******************************************************************
 //    write frequency template to LCD
 //******************************************************************
-void write_freq_tmp_LCD(){
+void freq_template_LCD(){
    lcd_clear();
    lcd_home();
     const char SquareWaveFreq[] = "fin=";
@@ -163,13 +162,13 @@ void write_freq_tmp_LCD(){
 //******************************************************************
 //    write signal shape template to LCD
 //******************************************************************
-void write_signal_shape_tmp_LCD(){
-   lcd_clear();
-   lcd_home();
-    const char signal_shape[] = "signal shape: ";
-     lcd_puts(signal_shape);
-     lcd_new_line;
-}
+// void write_signal_shape_tmp_LCD(){
+//    lcd_clear();
+//    lcd_home();
+//     const char signal_shape[] = "signal shape: ";
+//      lcd_puts(signal_shape);
+//      lcd_new_line;
+// }
 //******************************************************************
 // initialize the LCD
 //******************************************************************
@@ -285,7 +284,6 @@ void __attribute__ ((interrupt(TIMER1_A1_VECTOR))) TIMER1_A1_ISR (void)
       default:  break;
   }
 }
-
 //*********************************************************************
 //            TimerA0 Interrupt Service Routine
 //*********************************************************************
@@ -301,7 +299,6 @@ void __attribute__ ((interrupt(TIMER0_A0_VECTOR))) Timer_A (void)
     LPM0_EXIT;
     TACTL = MC_0+TACLR;
 }
-
 //*********************************************************************
 //            ADC10 Vector Interrupt Service Routine
 //*********************************************************************
@@ -310,7 +307,6 @@ __interrupt void ADC10_ISR (void)
 {
     __bic_SR_register_on_exit(CPUOFF);
 }
-
 //*********************************************************************
 //            Port1 Interrupt Service Routine
 //*********************************************************************
@@ -339,26 +335,21 @@ __interrupt void ADC10_ISR (void)
         switch(lpm_mode){
 		case mode0:
 		 LPM0_EXIT; // must be called from ISR only
-		 break;
-		 
+		 break;	 
 		case mode1:
 		 LPM1_EXIT; // must be called from ISR only
-		 break;
-		 
+		 break;	 
 		case mode2:
 		 LPM2_EXIT; // must be called from ISR only
-		 break;
-                 
+		 break;          
                 case mode3:
 		 LPM3_EXIT; // must be called from ISR only
-		 break;
-                 
+		 break;          
                 case mode4:
 		 LPM4_EXIT; // must be called from ISR only
 		 break;
 	}
 }
-
 //*********************************************************************
 //            Port2 Interrupt Service Routine
 //*********************************************************************
@@ -379,19 +370,15 @@ __interrupt void ADC10_ISR (void)
       case mode0:
           LPM0_EXIT; // must be called from ISR only
           break;
-
       case mode1:
           LPM1_EXIT; // must be called from ISR only
           break;
-
       case mode2:
           LPM2_EXIT; // must be called from ISR only
           break;
-
       case mode3:
           LPM3_EXIT; // must be called from ISR only
           break;
-
       case mode4:
           LPM4_EXIT; // must be called from ISR only
           break;

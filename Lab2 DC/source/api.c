@@ -11,15 +11,13 @@ unsigned int adcCapturePointer;
 //-------------------------------------------------------------
 //              Frequency Measurement
 //-------------------------------------------------------------
-void freqMeas(){
+void FreqMeas(){
         WDTCTL = WDTPW + WDTHOLD;
-        float N_SMCLK;
+        float N_SMCLK, freq, error=0, SMCLK_FREQ = 1048576; // 2^20
         const char* blank = "     \0" ;
-        float freq;
-        float tmp = 0;
-        float SMCLK_FREQ = 1048576;   // 2^20
         unsigned int real_freq;
         char strFreq[6] = {'\0'};
+
         write_freq_tmp_LCD(); // Write template of Frequency
         TA1CTL |= TASSEL_2 + MC_2 + TACLR;         //start Timer
         while(state == state1){
@@ -30,19 +28,21 @@ void freqMeas(){
             __bis_SR_register(LPM0_bits + GIE);              // Enter LPM0
             if(REdge1 == 0 && REdge2 == 0)  // first time
               continue;
-            tmp = 1.05915;  // after calc the error
-            N_SMCLK = 0.9*(REdge2 - REdge1)*tmp;
+            error = 1.05915;  // after calc the error
+            N_SMCLK = 0.9*(REdge2 - REdge1)*error;
             freq = SMCLK_FREQ / N_SMCLK;       // Calculate Frequency
             real_freq = (unsigned int) freq ;
             if (real_freq == 65535)  // delete later
                 continue;
             sprintf(strFreq, "%d", real_freq);
+            // Wipe freuqncy template
             lcd_home();
             lcd_cursor_right();
             lcd_cursor_right();
             lcd_cursor_right();
             lcd_cursor_right();
             lcd_puts(blank);
+            // Write Frequency
             lcd_home();
             lcd_cursor_right();
             lcd_cursor_right();
@@ -56,9 +56,6 @@ void freqMeas(){
         }
         TA1CTL = MC_0 ; // Stop Timer
 }
-
-
-
 //-------------------------------------------------------------
 //                         CountDown
 //-------------------------------------------------------------
@@ -95,7 +92,6 @@ void CountDown(){
             break;
         }
       }
-
 }
 //-------------------------------------------------------------
 //              StartTimer For Count Down
@@ -106,7 +102,6 @@ void startTimerA0(){
     // ACLK doesn't work on our msp, so we have to use smclk and divide the freq to get to 1 sec.
     __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
 }
-
 //-------------------------------------------------------------
 //              Tone Generator
 //-------------------------------------------------------------
@@ -130,11 +125,9 @@ void tone_generator(){
     }
     TA1CTL = MC_0 ; // Stop Timer
 }
-
 //-------------------------------------------------------------
 //              Signal Shape
 //-------------------------------------------------------------
-
 void Signal_shape(){
         while(state == state4){
             ADC10CTL0 |= ENC + ADC10SC;             // Start sampling

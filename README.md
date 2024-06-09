@@ -1,8 +1,6 @@
 # Digital-Computers
 
 
-## Changes for Lab kit: (unnecessary after last update)
-- uncomment the first line in main.c, halGPIO.c ( #define _MSP430FG4619_ )
-- in halGPIO.c interrupt sevice routine: vector=PORT2_VECTOR -> vector=PORT1_VECTOR
-- include to project bsp_msp430x4xx.c & bsp_msp430x4xx.h and delete 2 family
-- if not compiling remove ifdef for family choice 
+## general notes:
+1. last working commit tag ee7be91
+ 
