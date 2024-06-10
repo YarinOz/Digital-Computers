@@ -3,7 +3,7 @@
 ## Lab 2 - Timers, ADC, DAC
 
 ### Need to do:
-1. make sure all interrupt service routines are well defined
-2. make sure the relevant configurations are made 
-3. make sure all declarations are made in the header files
-4. write down the functions for each FSM state
+1. why over 18KHz jumps to 9KHz ? (maybe 2 fast so skipping)
+2. make the switch polling an interrupt
+3. build and verify state 3
+4. build an infrastracture for state 4 RT
