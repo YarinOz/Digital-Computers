@@ -44,7 +44,6 @@ void GPIOconfig(void){
 
   _BIS_SR(GIE);                     // enable interrupts globally
 }
-
 //-------------------------------------------------------------------------------------
 //            Timer1 A2 configuration - For state1
 //-------------------------------------------------------------------------------------
@@ -53,16 +52,14 @@ void TIMER1_A2_config(void){
     // CM_1 - * Capture mode: 1 - pos. edge */
     // SCS - /* Capture synchronize */
 }
-
 //-----------------------------------------------------s--------------------------------
 //            Timer1 A1 configuration - For state3
 //-------------------------------------------------------------------------------------
 void TIMER1_A1_config(void){
     TA1CCTL1 =  OUTMOD_7; // TA1CCR1 reset/set;
 }
-
 //------------------------------------------------------------------------------------- 
-//            Timer 1sec configuration
+//            Timer 1sec configuration - For state2
 //-------------------------------------------------------------------------------------
 void TIMER0_A0_config(void){
     WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
@@ -71,7 +68,6 @@ void TIMER0_A0_config(void){
     TA0CTL = TASSEL_2 + MC_0 + ID_3;  //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
     __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
 } 
-
 //------------------------------------------------------------------------------------- 
 //            ADC configuration
 //-------------------------------------------------------------------------------------
