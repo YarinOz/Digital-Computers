@@ -15,6 +15,8 @@
 #define SWsArrPort         P2IN
 #define SWsArrPortDir      P2DIR
 #define SWsArrPortSel      P2SEL
+#define SWsArrIntEn        P2IE
+#define SWsArrIntPend      P2IFG
 #define SWmask             0x7F
 
 // LCDs abstraction

@@ -24,9 +24,11 @@ void GPIOconfig(void){
   BuzzPortSel |= BIT2;             // P2.2 Select = '1'
   BuzzPortOut &= ~BIT2;             // P2.2 out = '0'
 
-//  // Switches Setup
-//  SWsArrPortDir  &= F7;
-//  SWsArrPortSel  &= F7;
+ // Switches Setup
+  SWsArrPortDir  &= F7;
+  SWsArrPortSel  &= F7;
+  SWsArrIntEn  |= 0x01;             
+  SWsArrIntPend &= ~0xFF;           // clear pending interrupts P2.0-2
 
   // PushButtons Setup
   PBsArrPortSel &= ~0x07;           //

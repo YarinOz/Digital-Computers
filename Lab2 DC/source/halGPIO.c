@@ -335,6 +335,18 @@ __interrupt void ADC10_ISR (void)
     }
 }
 //*********************************************************************
+//            SWitches Vector Interrupt Service Routine
+//*********************************************************************
+#pragma vector = PORT2_VECTOR
+__interrupt void Switches (void)
+{
+    delay(debounceVal);
+    if (SWsArrIntPend & 0x01){
+        SWstate = readSWs();
+        SWsArrIntPend &= ~0x01;
+    } // Check if interrupt occurred on P2.0
+}
+//*********************************************************************
 //            Port2 Interrupt Service Routine
 //*********************************************************************
 #pragma vector=PORT2_VECTOR

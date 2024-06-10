@@ -4,10 +4,14 @@
 
 // Global Variables
 unsigned int REdge1, REdge2;
+float previous_freq = 0.0;
+unsigned char SWstate;
+unsigned int savedMinutes = 0;
+unsigned int savedSeconds = 0;
 #define ADC_NUMBER_CAPTURES 100
 unsigned int adcCaptureValues[ADC_NUMBER_CAPTURES];
 unsigned int adcCapturePointer;
-float previous_freq = 0.0;
+
 
 
 //-------------------------------------------------------------
@@ -72,44 +76,39 @@ void FreqMeas(){
 //-------------------------------------------------------------
 void StopWatch(){
       char const * initial ="00:00";
-      unsigned char SWstate;
-      // print initial time
-      lcd_home();
-      lcd_puts(initial);
+      char current[6] = {'\0'};
+      if(savedMinutes != 0 || savedSeconds != 0){ // If saved time is not 0
+          // Load the saved time
+          minutes = savedMinutes;
+          seconds = savedSeconds;
+          // Print the saved time
+          lcd_home();
+          lcd_puts(current);
+      }
+      else{
+          // Print initial time
+          lcd_home();
+          lcd_puts(initial);
+      }
+      __bis_SR_register(LPM0_bits + GIE); // Enter LPM0
       while(1){
-        SWstate=readSWs();
-        if (state == state2){
-          if (SWstate == 0x01){
-            // Start Timer
-          }else{
-            // Stop Timer
+          if(SWstate == 0x01){
+              // Start Timer
+              startTimerA0();
+              // add 1 second
+              seconds++;
+              if (seconds >= 60) {
+                  seconds = 0;
+                  minutes++;
+              }
+              sprintf(current, "%d:%d", minutes, seconds);
+              // Print the time
+              lcd_home();
+              lcd_puts(current);
+              // Save the current time
+              savedMinutes = minutes;
+              savedSeconds = seconds;
           }
-      //       lcd_cmd(0x02);
-      //       if( i == 0){
-      //         char const * startWatch ="01:00";
-      //         lcd_puts(startWatch);
-      //         startTimerA0();
-      //         startTimerA0();
-      //       }
-      //       else {
-      //         char const * minstr ="00:";
-      //         lcd_puts(minstr);
-      //         lcd_data(dozen);
-      //         lcd_data(unity);
-
-      //         unity = unity -1;
-      //         if( unity == 0x2F){
-      //           unity = 0x39;
-      //           dozen = dozen-1;
-      //         }
-      //         startTimerA0();
-      //        startTimerA0();
-      //       }
-      //   }
-      //   else
-      //   {
-      //       break;
-        }
       }
 }
 //-------------------------------------------------------------
@@ -117,7 +116,7 @@ void StopWatch(){
 //-------------------------------------------------------------
 void startTimerA0(){
     TACCR0 = 0xFFFF;  // Timer Cycles - max
-    TA0CTL = TASSEL_2 + MC_1 + ID_3;  //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
+    TA0CTL = TASSEL_2 + MC_3 + ID_3;  //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
     // ACLK doesn't work on our msp, so we have to use smclk and divide the freq to get to 1 sec.
     __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
 }
