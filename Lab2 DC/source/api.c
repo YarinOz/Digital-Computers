@@ -1,4 +1,4 @@
-#include  "../header/api.h"    	// private library - API layer
+#include  "../header/api.h"     // private library - API layer
 #include  "../header/halGPIO.h"     // private library - HAL layer
 #include "stdio.h"
 
@@ -7,35 +7,43 @@ unsigned int REdge1, REdge2;
 #define ADC_NUMBER_CAPTURES 100
 unsigned int adcCaptureValues[ADC_NUMBER_CAPTURES];
 unsigned int adcCapturePointer;
+float previous_freq = 0.0;
+
 
 //-------------------------------------------------------------
 //      Frequency Measurement fin=SMCLK/#(SM cycles between 2 Rising edges)
 //-------------------------------------------------------------
 void FreqMeas(){
-        WDTCTL = WDTPW + WDTHOLD;
-        float N_SMCLK, freq, error=0, SMCLK_FREQ = 1048576; // 2^20
-        const char* blank = "     \0" ;
-        unsigned int real_freq;
-        char strFreq[6] = {'\0'};
+    WDTCTL = WDTPW + WDTHOLD;
+    float N_SMCLK, freq, error = 0, SMCLK_FREQ = 1048576; // 2^20
+    const char* blank = "     \0";
+    unsigned int real_freq;
+    char strFreq[6] = {'\0'};
 
-        freq_template_LCD(); // Write template of Frequency
-        TA1CTL |= TASSEL_2 + MC_2 + TACLR;         //start Timer
-        while(state == state1){
-            disable_interrupts();
-            strFreq[6] = '\0';   // Reset strFreq
-            REdge2 = REdge1 =  0;
-            TA1CCTL2 |= CCIE;                                // enable interrupt
-            __bis_SR_register(LPM0_bits + GIE);              // Enter LPM0
-            if(REdge1 == 0 && REdge2 == 0)  // first time
-              continue;
-            error = 1.05915;  // error value (need to calculate)
-            N_SMCLK = 0.9*(REdge2 - REdge1)*error;
-            freq = SMCLK_FREQ / N_SMCLK;       // Calculate Frequency
-            real_freq = (unsigned int) freq ;  // int casting
-            // if (real_freq == 65535)            // delete later
-            //     continue;
+    freq_template_LCD(); // Write template of Frequency
+    TA1CTL |= TASSEL_2 + MC_2 + TACLR; // start Timer
+
+    while (state == state1) {
+        disable_interrupts();
+        strFreq[6] = '\0'; // Reset strFreq
+        REdge2 = REdge1 = 0;
+        TA1CCTL2 |= CCIE; // enable interrupt
+        __bis_SR_register(LPM0_bits + GIE); // Enter LPM0
+
+        if (REdge1 == 0 && REdge2 == 0) // first time
+            continue;
+
+        error = 0.99450; // error value (need to calculate)
+        N_SMCLK = (REdge2 - REdge1) * error;
+        freq = SMCLK_FREQ / N_SMCLK; // Calculate Frequency
+        real_freq = (unsigned int)freq; // int casting
+
+        if (previous_freq == 0 || (fabs((freq - previous_freq) / previous_freq) > 0.03)) {
+            // If frequency changed by more than 0.03%
+            previous_freq = freq;
+
             sprintf(strFreq, "%d", real_freq);
-            // Wipe freuqncy template
+            // Wipe frequency template
             lcd_home();
             lcd_cursor_right();
             lcd_cursor_right();
@@ -49,13 +57,16 @@ void FreqMeas(){
             lcd_cursor_right();
             lcd_cursor_right();
             lcd_puts(strFreq);
-
-            cursor_off;
-            DelayMs(500);
-            enable_interrupts();
         }
-        TA1CTL = MC_0 ; // Stop Timer
+
+        cursor_off;
+        DelayMs(500);
+        enable_interrupts();
+    }
+
+    TA1CTL = MC_0; // Stop Timer
 }
+
 //-------------------------------------------------------------
 //                         StopWatch
 //-------------------------------------------------------------

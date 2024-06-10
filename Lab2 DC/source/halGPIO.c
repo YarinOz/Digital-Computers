@@ -8,47 +8,57 @@ unsigned int REdge1, REdge2;
 //             System Configuration  
 //--------------------------------------------------------------------
 void sysConfig(void){ 
-	GPIOconfig();
-	TIMER0_A0_config();
-	TIMER1_A1_config();
-	TIMER1_A2_config();
-	ADCconfig();
+    GPIOconfig();
+    TIMER0_A0_config();
+    TIMER1_A1_config();
+    TIMER1_A2_config();
+    ADCconfig();
 }
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// 				Set Byte to Port
+//              Read value of 4-bit SWs array
+//--------------------------------------------------------------------
+unsigned char readSWs(void){
+    unsigned char ch;
+
+    ch = PBsArrPort;
+    ch &= SWmask;     // mask the least 4-bit
+    return ch;
+}
+//--------------------------------------------------------------------
+//              Set Byte to Port
 //--------------------------------------------------------------------
 void SetByteToPort(char ch){
-	PBsArrPortOut |= ch;  
+    PBsArrPortOut |= ch;
 } 
 //--------------------------------------------------------------------
-// 				Clear Port Byte
+//              Clear Port Byte
 //--------------------------------------------------------------------
 void clrPortByte(char ch){
-	PBsArrPortOut &= ~ch;
+    PBsArrPortOut &= ~ch;
 } 
 //---------------------------------------------------------------------
 //            Polling based Delay function
 //---------------------------------------------------------------------
 void delay(unsigned int t){  //
-	volatile unsigned int i;
-	
-	for(i=t; i>0; i--);
+    volatile unsigned int i;
+
+    for(i=t; i>0; i--);
 }  
 //---------------------------------------------------------------------
 //            Enter from LPM0 mode
 //---------------------------------------------------------------------
 void enterLPM(unsigned char LPM_level){
-	if (LPM_level == 0x00) 
-	  _BIS_SR(LPM0_bits);     /* Enter Low Power Mode 0 */
+    if (LPM_level == 0x00)
+      _BIS_SR(LPM0_bits);     /* Enter Low Power Mode 0 */
         else if(LPM_level == 0x01) 
-	  _BIS_SR(LPM1_bits);     /* Enter Low Power Mode 1 */
+      _BIS_SR(LPM1_bits);     /* Enter Low Power Mode 1 */
         else if(LPM_level == 0x02) 
-	  _BIS_SR(LPM2_bits);     /* Enter Low Power Mode 2 */
-	else if(LPM_level == 0x03) 
-	  _BIS_SR(LPM3_bits);     /* Enter Low Power Mode 3 */
+      _BIS_SR(LPM2_bits);     /* Enter Low Power Mode 2 */
+    else if(LPM_level == 0x03)
+      _BIS_SR(LPM3_bits);     /* Enter Low Power Mode 3 */
         else if(LPM_level == 0x04) 
-	  _BIS_SR(LPM4_bits);     /* Enter Low Power Mode 4 */
+      _BIS_SR(LPM4_bits);     /* Enter Low Power Mode 4 */
 }
 //---------------------------------------------------------------------
 //            Enable interrupts
@@ -287,42 +297,42 @@ __interrupt void ADC10_ISR (void)
 #pragma vector=PORT1_VECTOR
   __interrupt void PBs_handler(void){
    
-	delay(debounceVal);
+    delay(debounceVal);
 //---------------------------------------------------------------------
 //            selector of transition between states
 //---------------------------------------------------------------------
-	if(PBsArrIntPend & PB0){
-	  state = state1;
-	  PBsArrIntPend &= ~PB0;
+    if(PBsArrIntPend & PB0){
+      state = state1;
+      PBsArrIntPend &= ~PB0;
         }
         else if(PBsArrIntPend & PB1){
-	  state = state2;
-	  PBsArrIntPend &= ~PB1; 
+      state = state2;
+      PBsArrIntPend &= ~PB1;
         }
-	else if(PBsArrIntPend & PB2){ 
-	  state = state3;
-	  PBsArrIntPend &= ~PB2;
+    else if(PBsArrIntPend & PB2){
+      state = state3;
+      PBsArrIntPend &= ~PB2;
         }
 //---------------------------------------------------------------------
 //            Exit from a given LPM 
-//---------------------------------------------------------------------	
+//---------------------------------------------------------------------
         switch(lpm_mode){
-		case mode0:
-		 LPM0_EXIT; // must be called from ISR only
-		 break;	 
-		case mode1:
-		 LPM1_EXIT; // must be called from ISR only
-		 break;	 
-		case mode2:
-		 LPM2_EXIT; // must be called from ISR only
-		 break;          
+        case mode0:
+         LPM0_EXIT; // must be called from ISR only
+         break;
+        case mode1:
+         LPM1_EXIT; // must be called from ISR only
+         break;
+        case mode2:
+         LPM2_EXIT; // must be called from ISR only
+         break;
                 case mode3:
-		 LPM3_EXIT; // must be called from ISR only
-		 break;          
+         LPM3_EXIT; // must be called from ISR only
+         break;
                 case mode4:
-		 LPM4_EXIT; // must be called from ISR only
-		 break;
-	}
+         LPM4_EXIT; // must be called from ISR only
+         break;
+    }
 }
 //*********************************************************************
 //            Port2 Interrupt Service Routine
@@ -358,3 +368,36 @@ __interrupt void ADC10_ISR (void)
           break;
       }
   }
+//---------------------------------------------------------------------
+// Port1 Interrupt Service Routine for switch
+//---------------------------------------------------------------------
+//#pragma vector=PORT2_VECTOR
+//__interrupt void Switches(void)
+//{
+//  delay(debounceVal);  // Debounce delay
+//
+//  if(P2IFG & BIT0)  // Check if interrupt occurred on P2.0
+//  {
+//      if (stopwatchRunning) {
+//          // Stop Timer
+//          stopwatchRunning = 0;
+//          stopTimerA0();
+//          // Save the current time
+//          savedMinutes = minutes;
+//          savedSeconds = seconds;
+//          // Print the saved time
+//          updateLCD();
+//      } else {
+//          // Start Timer
+//          stopwatchRunning = 1;
+//          // Load the saved time
+//          minutes = savedMinutes;
+//          seconds = savedSeconds;
+//          startTimerA0();
+//      }
+//
+//      P2IFG &= ~BIT0;  // Clear interrupt flag for P1.3
+//  }
+//
+//  LPM0_EXIT;  // Exit LPM0 on ISR exit
+//}

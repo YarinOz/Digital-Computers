@@ -36,9 +36,9 @@
 #define BuzzPortOut        P2OUT
 
 // PushButtons abstraction
-#define PBsArrPort	       P1IN
-#define PBsArrIntPend	   P1IFG
-#define PBsArrIntEn	       P1IE
+#define PBsArrPort         P1IN
+#define PBsArrIntPend      P1IFG
+#define PBsArrIntEn        P1IE
 #define PBsArrIntEdgeSel   P1IES
 #define PBsArrPortSel      P1SEL
 #define PBsArrPortDir      P1DIR
@@ -56,6 +56,3 @@ extern void TIMER1_A1_config(void);
 extern void ADCconfig(void);
 
 #endif
-
-
-

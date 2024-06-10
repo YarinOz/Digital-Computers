@@ -6,7 +6,7 @@
 #else
 #include "../header/bsp_msp430x2xx.h" //pesronal kit
 #endif
-#include  "../header/app.h"    	// private library - APP layer
+#include  "../header/app.h"     // private library - APP layer
 
 extern enum FSMstate state;   // global variable
 extern enum SYSmode lpm_mode; // global variable
@@ -19,6 +19,7 @@ extern void enterLPM(unsigned char);
 extern void enable_interrupts();
 extern void disable_interrupts();
 extern void freq_template_LCD();
+extern unsigned char readSWs(void);
 // extern void write_signal_shape_tmp_LCD();
 
 extern __interrupt void PBs_handler(void);
