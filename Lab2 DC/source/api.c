@@ -60,36 +60,44 @@ void FreqMeas(){
 //                         StopWatch
 //-------------------------------------------------------------
 void StopWatch(){
-      int i;
-      char dozen = 0x35;  // '5'
-      char unity = 0x39; // '9'
-      for (i =  0 ; i <= 60 ; i++){
+      char const * initial ="00:00";
+      unsigned char SWstate;
+      // print initial time
+      lcd_home();
+      lcd_puts(initial);
+      while(1){
+        SWstate=readSWs();
         if (state == state2){
-            lcd_cmd(0x02);
-            if( i == 0){
-              char const * startWatch ="01:00";
-              lcd_puts(startWatch);
-              startTimerA0();
-              startTimerA0();
-            }
-            else {
-              char const * minstr ="00:";
-              lcd_puts(minstr);
-              lcd_data(dozen);
-              lcd_data(unity);
+          if (SWstate == 0x01){
+            // Start Timer
+          }else{
+            // Stop Timer
+          }
+      //       lcd_cmd(0x02);
+      //       if( i == 0){
+      //         char const * startWatch ="01:00";
+      //         lcd_puts(startWatch);
+      //         startTimerA0();
+      //         startTimerA0();
+      //       }
+      //       else {
+      //         char const * minstr ="00:";
+      //         lcd_puts(minstr);
+      //         lcd_data(dozen);
+      //         lcd_data(unity);
 
-              unity = unity -1;
-              if( unity == 0x2F){
-                unity = 0x39;
-                dozen = dozen-1;
-              }
-              startTimerA0();
-             startTimerA0();
-            }
-        }
-        else
-        {
-            break;
+      //         unity = unity -1;
+      //         if( unity == 0x2F){
+      //           unity = 0x39;
+      //           dozen = dozen-1;
+      //         }
+      //         startTimerA0();
+      //        startTimerA0();
+      //       }
+      //   }
+      //   else
+      //   {
+      //       break;
         }
       }
 }
