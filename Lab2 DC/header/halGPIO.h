@@ -23,7 +23,8 @@ extern unsigned char readSWs(void);
 // extern void write_signal_shape_tmp_LCD();
 
 extern __interrupt void PBs_handler(void);
-extern __interrupt void PBs_handler_P2(void);
+//extern __interrupt void Switches(void);
+extern __interrupt void ADC10_ISR(void);
 
 #endif
 

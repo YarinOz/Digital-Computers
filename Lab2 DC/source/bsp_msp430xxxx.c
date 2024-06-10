@@ -25,10 +25,10 @@ void GPIOconfig(void){
   BuzzPortOut &= ~BIT2;             // P2.2 out = '0'
 
  // Switches Setup
-  SWsArrPortDir  &= F7;
-  SWsArrPortSel  &= F7;
-  SWsArrIntEn  |= 0x01;             
-  SWsArrIntPend &= ~0xFF;           // clear pending interrupts P2.0-2
+  SWsArrPortDir  &= 0xFE;
+  SWsArrPortSel  &= 0xFE;
+//  SWsArrIntEn  |= 0x01;
+//  SWsArrIntPend &= ~0xFF;           // clear pending interrupts P2.0-2
 
   // PushButtons Setup
   PBsArrPortSel &= ~0x07;           //
@@ -72,7 +72,9 @@ void TIMER0_A0_config(void){
     TA0CCTL0 = CCIE;
     TACCR0 = 0xFFFF;
     TA0CTL = TASSEL_2 + MC_0 + ID_3;  //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
-    __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
+//    __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
+    __bis_SR_register(GIE);       //interrupt
+
 } 
 //------------------------------------------------------------------------------------- 
 //            ADC configuration

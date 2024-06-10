@@ -4,15 +4,15 @@
 
 // Global Variables
 unsigned int REdge1, REdge2;
-float previous_freq = 0.0;
-unsigned char SWstate;
 unsigned int savedMinutes = 0;
 unsigned int savedSeconds = 0;
+unsigned char SWstate;
 #define ADC_NUMBER_CAPTURES 100
 unsigned int adcCaptureValues[ADC_NUMBER_CAPTURES];
 unsigned int adcCapturePointer;
 
-
+// Last displayed frequency
+unsigned int last_displayed_freq = 0;
 
 //-------------------------------------------------------------
 //      Frequency Measurement fin=SMCLK/#(SM cycles between 2 Rising edges)
@@ -37,38 +37,56 @@ void FreqMeas(){
         if (REdge1 == 0 && REdge2 == 0) // first time
             continue;
 
-        error = 0.99450; // error value (need to calculate)
+        error = 0.99200; // error value (need to calculate)
         N_SMCLK = (REdge2 - REdge1) * error;
         freq = SMCLK_FREQ / N_SMCLK; // Calculate Frequency
         real_freq = (unsigned int)freq; // int casting
 
-        if (previous_freq == 0 || (fabs((freq - previous_freq) / previous_freq) > 0.03)) {
-            // If frequency changed by more than 0.03%
-            previous_freq = freq;
-
+        if (last_displayed_freq == 0) {
+            // First time, always print
             sprintf(strFreq, "%d", real_freq);
-            // Wipe frequency template
             lcd_home();
             lcd_cursor_right();
             lcd_cursor_right();
             lcd_cursor_right();
             lcd_cursor_right();
             lcd_puts(blank);
-            // Write Frequency
             lcd_home();
             lcd_cursor_right();
             lcd_cursor_right();
             lcd_cursor_right();
             lcd_cursor_right();
             lcd_puts(strFreq);
+            last_displayed_freq = real_freq;
+        } else {
+            // Calculate the percentage difference
+            float percentage_diff = ((float)abs((int)(real_freq - last_displayed_freq)) / last_displayed_freq) * 100;
+            if (((real_freq <= 5000 && percentage_diff > 0.46) ||
+                 (real_freq > 5000 && real_freq <= 10000 && percentage_diff > 0.9) ||
+                 (real_freq > 17000 && real_freq <= 20000 && percentage_diff > 8) ||
+                 (real_freq > 10000 && real_freq <= 17000 && percentage_diff > 2.3))) {
+                sprintf(strFreq, "%d", real_freq);
+                lcd_home();
+                lcd_cursor_right();
+                lcd_cursor_right();
+                lcd_cursor_right();
+                lcd_cursor_right();
+                lcd_puts(blank);
+                lcd_home();
+                lcd_cursor_right();
+                lcd_cursor_right();
+                lcd_cursor_right();
+                lcd_cursor_right();
+                lcd_puts(strFreq);
+                last_displayed_freq = real_freq;
+            }
         }
 
         cursor_off;
         DelayMs(500);
         enable_interrupts();
     }
-
-    TA1CTL = MC_0; // Stop Timer
+    TA1CTL = MC_0+TACLR; // Stop Timer
 }
 
 //-------------------------------------------------------------
@@ -76,40 +94,73 @@ void FreqMeas(){
 //-------------------------------------------------------------
 void StopWatch(){
       char const * initial ="00:00";
-      char current[6] = {'\0'};
+      char currentmin[3] = {'\0'};
+      char currentsec[3] = {'\0'};
+      int minutes=0, seconds=0;
+      WDTCTL = WDTPW + WDTHOLD;
+//      enable_interrupts();
       if(savedMinutes != 0 || savedSeconds != 0){ // If saved time is not 0
           // Load the saved time
           minutes = savedMinutes;
           seconds = savedSeconds;
-          // Print the saved time
+          sprintf(currentmin, "%d", minutes);
+          sprintf(currentsec, "%d", seconds);
           lcd_home();
-          lcd_puts(current);
+          if (minutes < 10){
+              lcd_puts("0");
+          }
+          lcd_puts(currentmin);
+          lcd_puts(":");
+          if (seconds < 10){
+              lcd_puts("0");
+          }
+          lcd_puts(currentsec);
       }
       else{
           // Print initial time
           lcd_home();
           lcd_puts(initial);
       }
-      __bis_SR_register(LPM0_bits + GIE); // Enter LPM0
+//      enterLPM(mode0);
       while(1){
-          if(SWstate == 0x01){
-              // Start Timer
-              startTimerA0();
-              // add 1 second
-              seconds++;
-              if (seconds >= 60) {
-                  seconds = 0;
-                  minutes++;
-              }
-              sprintf(current, "%d:%d", minutes, seconds);
-              // Print the time
-              lcd_home();
-              lcd_puts(current);
-              // Save the current time
-              savedMinutes = minutes;
-              savedSeconds = seconds;
+          if (state == state2){
+              SWstate = readSWs();
+              if(SWstate == 0x00){
+                  // Start Timer
+                  startTimerA0();
+                  startTimerA0();
+                  // add 1 second
+                  seconds++;
+                  if (seconds >= 60) {
+                      seconds = 0;
+                      minutes++;
+                  }
+                  sprintf(currentmin, "%d", minutes);
+                  sprintf(currentsec, "%d", seconds);
+                  // Print the time
+                  lcd_home();
+                  if (minutes < 10){
+                      lcd_puts("0");
+                  }
+                  lcd_puts(currentmin);
+                  lcd_puts(":");
+                  if (seconds < 10){
+                      lcd_puts("0");
+                  }
+                  lcd_puts(currentsec);
+                  // Save the current time
+                  savedMinutes = minutes;
+                  savedSeconds = seconds;
+
+                  cursor_off;
+          }else{
+              continue;
           }
-      }
+        }else{
+            TA0CTL = MC_0;
+            break;
+        }
+    }
 }
 //-------------------------------------------------------------
 //              StartTimer For StopWatch

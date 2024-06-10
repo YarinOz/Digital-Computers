@@ -3,6 +3,7 @@
 // Global Variables
 unsigned int Count = 0x0;
 unsigned int REdge1, REdge2;
+unsigned char SWstate;
 
 //--------------------------------------------------------------------
 //             System Configuration  
@@ -21,7 +22,7 @@ void sysConfig(void){
 unsigned char readSWs(void){
     unsigned char ch;
 
-    ch = PBsArrPort;
+    ch = SWsArrPort;
     ch &= SWmask;     // mask the least 4-bit
     return ch;
 }
@@ -227,7 +228,7 @@ void DelayMs(unsigned int cnt){
     for(i=cnt ; i>0 ; i--) DelayUs(1000); // tha command asm("nop") takes raphly 1usec
 }
 //*********************************************************************
-//            TimerA0 Interrupt Service Routine
+//            TimerA1 Interrupt Service Routine
 //*********************************************************************
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector = TIMER1_A1_VECTOR
@@ -337,49 +338,50 @@ __interrupt void ADC10_ISR (void)
 //*********************************************************************
 //            SWitches Vector Interrupt Service Routine
 //*********************************************************************
-#pragma vector = PORT2_VECTOR
-__interrupt void Switches (void)
-{
-    delay(debounceVal);
-    if (SWsArrIntPend & 0x01){
-        SWstate = readSWs();
-        SWsArrIntPend &= ~0x01;
-    } // Check if interrupt occurred on P2.0
-}
+//#pragma vector=PORT2_VECTOR
+//__interrupt void Switches (void)
+//{
+//    delay(debounceVal);
+//    if (SWsArrIntPend & 0x01){
+//        SWstate = readSWs();
+//        SWsArrIntEdgeSel ^= 0x01;
+//        SWsArrIntPend &= ~0x01;
+//    } // Check if interrupt occurred on P2.0
+//}
 //*********************************************************************
 //            Port2 Interrupt Service Routine
 //*********************************************************************
-#pragma vector=PORT2_VECTOR
-  __interrupt void PBs_handler_P2(void){
-      delay(debounceVal);
-//---------------------------------------------------------------------
-//            selector of transition between states
-//---------------------------------------------------------------------
-    //   if(PB3sArrIntPend & PB3){    // For Main Lab
-    //       state = state4;
-    //       PB3sArrIntPend &= ~PB3;
-    //   }
-//---------------------------------------------------------------------
-//            Exit from a given LPM
-//---------------------------------------------------------------------
-      switch(lpm_mode){
-      case mode0:
-          LPM0_EXIT; // must be called from ISR only
-          break;
-      case mode1:
-          LPM1_EXIT; // must be called from ISR only
-          break;
-      case mode2:
-          LPM2_EXIT; // must be called from ISR only
-          break;
-      case mode3:
-          LPM3_EXIT; // must be called from ISR only
-          break;
-      case mode4:
-          LPM4_EXIT; // must be called from ISR only
-          break;
-      }
-  }
+//#pragma vector=PORT2_VECTOR
+//  __interrupt void PBs_handler_P2(void){
+//      delay(debounceVal);
+////---------------------------------------------------------------------
+////            selector of transition between states
+////---------------------------------------------------------------------
+//    //   if(PB3sArrIntPend & PB3){    // For Main Lab
+//    //       state = state4;
+//    //       PB3sArrIntPend &= ~PB3;
+//    //   }
+////---------------------------------------------------------------------
+////            Exit from a given LPM
+////---------------------------------------------------------------------
+//      switch(lpm_mode){
+//      case mode0:
+//          LPM0_EXIT; // must be called from ISR only
+//          break;
+//      case mode1:
+//          LPM1_EXIT; // must be called from ISR only
+//          break;
+//      case mode2:
+//          LPM2_EXIT; // must be called from ISR only
+//          break;
+//      case mode3:
+//          LPM3_EXIT; // must be called from ISR only
+//          break;
+//      case mode4:
+//          LPM4_EXIT; // must be called from ISR only
+//          break;
+//      }
+//  }
 //---------------------------------------------------------------------
 // Port1 Interrupt Service Routine for switch
 //---------------------------------------------------------------------

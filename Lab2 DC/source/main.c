@@ -15,11 +15,13 @@ void main(void){
   while(1){
     switch(state){
       case state0: //idle state
+          lcd_home();
           lcd_clear();
           enterLPM(mode0);
           break;
 
       case state1: //PB0
+        enable_interrupts();  // Enable to Cut the state
         FreqMeas();  // Frequency Measurements
         break;
 
