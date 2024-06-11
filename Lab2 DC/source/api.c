@@ -172,7 +172,7 @@ void startTimerA0(){
     __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
 }
 //-------------------------------------------------------------
-//              Tone Generator
+//   Tone Generator     buzzer_potentiometer[0-3.3V] -> [1-2.5KHz]
 //-------------------------------------------------------------
 void GenTones(){
     TA1CTL = TASSEL_2 + MC_1;                  // SMCLK, upmode
@@ -181,9 +181,14 @@ void GenTones(){
         __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
         ADC10CTL0 &= ~ADC10ON; // Don't get into interrupt
 
-        unsigned int adc_conv = ADC10MEM;
-        float coeff = 1.956;  // coeff = 2000 / 1023;
-        float f_out = coeff * adc_conv + 1000;  // Choose Linear Mapping
+        unsigned int Nadc = ADC10MEM;  // 0-1023 , 1024 voltage levels
+        // float coeff = 1.956;  // coeff = 2000 / 1023;
+        float coeff = 1.465;  // coeff = 1500 / 1023; WIP
+        float f_out = coeff * Nadc + 1000;  // Choose Linear Mapping
+        // f_out = m*Nadc + n
+        // f_out = (Nadc/0X3FF)*1.5K + 1K
+        // for 0: m*0 + n = 1 => n = 1K
+        // for 1023: m*1023 + n = 2.5 => m = 1500/1023
 
         float SMCLK_FREQ = 1048576; // SMCLK freq 2^20
         unsigned int period_to_pwm = SMCLK_FREQ/f_out;

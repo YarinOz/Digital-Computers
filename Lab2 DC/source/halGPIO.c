@@ -338,16 +338,33 @@ __interrupt void ADC10_ISR (void)
 //*********************************************************************
 //            SWitches Vector Interrupt Service Routine
 //*********************************************************************
-//#pragma vector=PORT2_VECTOR
-//__interrupt void Switches (void)
-//{
+// #pragma vector=PORT2_VECTOR
+// __interrupt void Switches (void)
+// {
 //    delay(debounceVal);
 //    if (SWsArrIntPend & 0x01){
 //        SWstate = readSWs();
 //        SWsArrIntEdgeSel ^= 0x01;
 //        SWsArrIntPend &= ~0x01;
 //    } // Check if interrupt occurred on P2.0
-//}
+//            switch(lpm_mode){
+//         case mode0:
+//          LPM0_EXIT; // must be called from ISR only
+//          break;
+//         case mode1:
+//          LPM1_EXIT; // must be called from ISR only
+//          break;
+//         case mode2:
+//          LPM2_EXIT; // must be called from ISR only
+//          break;
+//                 case mode3:
+//          LPM3_EXIT; // must be called from ISR only
+//          break;
+//                 case mode4:
+//          LPM4_EXIT; // must be called from ISR only
+//          break;
+//     }
+// }
 //*********************************************************************
 //            Port2 Interrupt Service Routine
 //*********************************************************************
@@ -382,36 +399,4 @@ __interrupt void ADC10_ISR (void)
 //          break;
 //      }
 //  }
-//---------------------------------------------------------------------
-// Port1 Interrupt Service Routine for switch
-//---------------------------------------------------------------------
-//#pragma vector=PORT2_VECTOR
-//__interrupt void Switches(void)
-//{
-//  delay(debounceVal);  // Debounce delay
-//
-//  if(P2IFG & BIT0)  // Check if interrupt occurred on P2.0
-//  {
-//      if (stopwatchRunning) {
-//          // Stop Timer
-//          stopwatchRunning = 0;
-//          stopTimerA0();
-//          // Save the current time
-//          savedMinutes = minutes;
-//          savedSeconds = seconds;
-//          // Print the saved time
-//          updateLCD();
-//      } else {
-//          // Start Timer
-//          stopwatchRunning = 1;
-//          // Load the saved time
-//          minutes = savedMinutes;
-//          seconds = savedSeconds;
-//          startTimerA0();
-//      }
-//
-//      P2IFG &= ~BIT0;  // Clear interrupt flag for P1.3
-//  }
-//
-//  LPM0_EXIT;  // Exit LPM0 on ISR exit
-//}
+
