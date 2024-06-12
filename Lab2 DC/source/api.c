@@ -96,7 +96,7 @@ void StopWatch(){
       char currentsec[3] = {'\0'};
       int minutes=0, seconds=0;
       WDTCTL = WDTPW + WDTHOLD;
-//      enable_interrupts();
+
       if(savedMinutes != 0 || savedSeconds != 0){ // If saved time is not 0
           // Load the saved time
           minutes = savedMinutes;
@@ -119,10 +119,12 @@ void StopWatch(){
           lcd_home();
           lcd_puts(initial);
       }
-      SWstate = readSWs();
+      // if the switch is up and the state changes
+      SWstate = readSWs();  
       if (SWstate != 0x00){
           __bis_SR_register(LPM0_bits + GIE);
       }
+      // after init CPU goes to sleep, then wakes up if the switch is pressed
       while(1){
           if (state == state2){
               SWstate = readSWs();
@@ -183,7 +185,7 @@ void GenTones(){
         ADC10CTL0 &= ~ADC10ON; // Don't get into interrupt
 
         unsigned int Nadc = ADC10MEM;  // 0-1023 , 1024 voltage levels
-        float coeff = 1.465;  // coeff = 1500 / 1023; WIP
+        float coeff = 1.465;  // coeff = 1500 / 1023; 
         float f_out = coeff * Nadc + 1000;  // Choose Linear Mapping
         // f_out = m*Nadc + n
         // f_out = (Nadc/0X3FF)*1.5K + 1K
@@ -193,8 +195,8 @@ void GenTones(){
         float SMCLK_FREQ = 1048576; // SMCLK freq 2^20
         unsigned int period_to_pwm = SMCLK_FREQ/f_out;
 
-        TA1CCR0 = period_to_pwm;
-        TA1CCR1 = (int) period_to_pwm/2;
+        TA1CCR0 = period_to_pwm;            // PWM Period
+        TA1CCR1 = (int) period_to_pwm/2;    // 50% Duty Cycle
     }
     TA1CTL = MC_0 ; // Stop Timer
 }
