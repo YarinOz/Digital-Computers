@@ -150,16 +150,6 @@ void freq_template_LCD(){
      lcd_puts(Hz);
 }
 //******************************************************************
-//    write signal shape template to LCD
-//******************************************************************
-// void write_signal_shape_tmp_LCD(){
-//    lcd_clear();
-//    lcd_home();
-//     const char signal_shape[] = "signal shape: ";
-//      lcd_puts(signal_shape);
-//      lcd_new_line;
-// }
-//******************************************************************
 // initialize the LCD
 //******************************************************************
 void lcd_init(){
@@ -338,65 +328,28 @@ __interrupt void ADC10_ISR (void)
 //*********************************************************************
 //            SWitches Vector Interrupt Service Routine
 //*********************************************************************
-// #pragma vector=PORT2_VECTOR
-// __interrupt void Switches (void)
-// {
-//    delay(debounceVal);
-//    if (SWsArrIntPend & 0x01){
-//        SWstate = readSWs();
-//        SWsArrIntEdgeSel ^= 0x01;
-//        SWsArrIntPend &= ~0x01;
-//    } // Check if interrupt occurred on P2.0
-//            switch(lpm_mode){
-//         case mode0:
-//          LPM0_EXIT; // must be called from ISR only
-//          break;
-//         case mode1:
-//          LPM1_EXIT; // must be called from ISR only
-//          break;
-//         case mode2:
-//          LPM2_EXIT; // must be called from ISR only
-//          break;
-//                 case mode3:
-//          LPM3_EXIT; // must be called from ISR only
-//          break;
-//                 case mode4:
-//          LPM4_EXIT; // must be called from ISR only
-//          break;
-//     }
-// }
-//*********************************************************************
-//            Port2 Interrupt Service Routine
-//*********************************************************************
-//#pragma vector=PORT2_VECTOR
-//  __interrupt void PBs_handler_P2(void){
-//      delay(debounceVal);
-////---------------------------------------------------------------------
-////            selector of transition between states
-////---------------------------------------------------------------------
-//    //   if(PB3sArrIntPend & PB3){    // For Main Lab
-//    //       state = state4;
-//    //       PB3sArrIntPend &= ~PB3;
-//    //   }
-////---------------------------------------------------------------------
-////            Exit from a given LPM
-////---------------------------------------------------------------------
-//      switch(lpm_mode){
-//      case mode0:
-//          LPM0_EXIT; // must be called from ISR only
-//          break;
-//      case mode1:
-//          LPM1_EXIT; // must be called from ISR only
-//          break;
-//      case mode2:
-//          LPM2_EXIT; // must be called from ISR only
-//          break;
-//      case mode3:
-//          LPM3_EXIT; // must be called from ISR only
-//          break;
-//      case mode4:
-//          LPM4_EXIT; // must be called from ISR only
-//          break;
-//      }
-//  }
-
+ #pragma vector=PORT2_VECTOR
+ __interrupt void Switches (void)
+ {
+    delay(debounceVal);
+    if (SWsArrIntPend & 0x01){
+        SWsArrIntPend &= ~0x01;
+    } // Check if interrupt occurred on P2.0
+            switch(lpm_mode){
+         case mode0:
+          LPM0_EXIT; // must be called from ISR only
+          break;
+         case mode1:
+          LPM1_EXIT; // must be called from ISR only
+          break;
+         case mode2:
+          LPM2_EXIT; // must be called from ISR only
+          break;
+                 case mode3:
+          LPM3_EXIT; // must be called from ISR only
+          break;
+                 case mode4:
+          LPM4_EXIT; // must be called from ISR only
+          break;
+     }
+ }

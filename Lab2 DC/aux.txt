@@ -1,0 +1,98 @@
+// api.c
+#define ADC_NUMBER_CAPTURES 100
+unsigned int adcCaptureValues[ADC_NUMBER_CAPTURES];
+unsigned int adcCapturePointer;
+//-------------------------------------------------------------
+//              Signal Shape
+//-------------------------------------------------------------
+// void Signal_shape(){
+//         while(state == state4){
+//             ADC10CTL0 |= ENC + ADC10SC;             // Start sampling
+//             __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
+//             ADC10CTL0 &= ~ADC10ON; // Don't get into interrupt
+//             char * strLCD;
+//             if(adcCapturePointer < ADC_NUMBER_CAPTURES) adcCaptureValues[adcCapturePointer++] = ADC10MEM;
+//             else {
+//                 adcCapturePointer = 0;
+//                 unsigned int i;
+//                 unsigned int low_val_counter;
+//                 unsigned int high_val_counter;
+//                 unsigned int tri_counter;
+//                 low_val_counter = 0;
+//                 high_val_counter = 0;
+//                 tri_counter = 0;
+//                 for (i=1;i<ADC_NUMBER_CAPTURES-1;i++){
+//                     //pwm
+//                     if(adcCaptureValues[i] <= 5) low_val_counter ++;
+//                     else if (adcCaptureValues[i] >= 800) high_val_counter ++;
+//                     // tri
+//                     if(abs(2*adcCaptureValues[i]-adcCaptureValues[i-1]-adcCaptureValues[i+1])<3) tri_counter++;
+
+
+//                 }
+//                 if (low_val_counter > 5 && high_val_counter > 5) strLCD = "pwm";
+//                 else if (tri_counter > 16) strLCD = "tri";
+//                 else strLCD = "sin";
+//                 DelayMs(500);
+//                 write_signal_shape_tmp_LCD();
+//                 lcd_puts(strLCD);
+//             }
+
+//         }
+// }
+
+// halgpio.c
+
+//******************************************************************
+//    write signal shape template to LCD
+//******************************************************************
+// void write_signal_shape_tmp_LCD(){
+//    lcd_clear();
+//    lcd_home();
+//     const char signal_shape[] = "signal shape: ";
+//      lcd_puts(signal_shape);
+//      lcd_new_line;
+// }
+//*********************************************************************
+//            Port2 Interrupt Service Routine
+//*********************************************************************
+//#pragma vector=PORT2_VECTOR
+//  __interrupt void PBs_handler_P2(void){
+//      delay(debounceVal);
+////---------------------------------------------------------------------
+////            selector of transition between states
+////---------------------------------------------------------------------
+//    //   if(PB3sArrIntPend & PB3){    // For Main Lab
+//    //       state = state4;
+//    //       PB3sArrIntPend &= ~PB3;
+//    //   }
+////---------------------------------------------------------------------
+////            Exit from a given LPM
+////---------------------------------------------------------------------
+//      switch(lpm_mode){
+//      case mode0:
+//          LPM0_EXIT; // must be called from ISR only
+//          break;
+//      case mode1:
+//          LPM1_EXIT; // must be called from ISR only
+//          break;
+//      case mode2:
+//          LPM2_EXIT; // must be called from ISR only
+//          break;
+//      case mode3:
+//          LPM3_EXIT; // must be called from ISR only
+//          break;
+//      case mode4:
+//          LPM4_EXIT; // must be called from ISR only
+//          break;
+//      }
+//  }
+
+// bsp.c
+  // PushButton 3 Setup For Main Lab
+//  PB3sArrPortSel &= ~BIT0;           //
+//  PB3sArrPortOut &= ~BIT0;            // Set P2Out to '0'
+//  PB3sArrPortDir &= ~BIT0;            // P2.0 - Input ('0')
+//  PB3sArrIntEdgeSel &= ~BIT0;         // pull-down mode  P2.0 - '0'
+//  PB3sArrIntEn |= BIT0;               // P1.0-2 - '1'
+//  PB3sArrIntPend &= ~BIT0;            // clear pending interrupts P2.0

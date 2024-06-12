@@ -38,7 +38,9 @@ void main(void){
         break;
                 
       case state4: //PB3 RT
-//        Signal_shape();
+        enable_interrupts();  // Enable to Cut the state
+        lcd_clear();          // Clear LCD screen
+        // RTLAB();
         break;
     }
   }

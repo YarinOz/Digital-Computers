@@ -7,6 +7,6 @@ extern void StopWatch();
 extern void startTimerA0();
 extern void FreqMeas();
 extern void GenTones();
-// extern void Signal_shape();
+// extern void RTLAB();
 
 #endif

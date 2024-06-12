@@ -7,10 +7,6 @@ unsigned int REdge1, REdge2;
 unsigned int savedMinutes = 0;
 unsigned int savedSeconds = 0;
 unsigned char SWstate;
-#define ADC_NUMBER_CAPTURES 100
-unsigned int adcCaptureValues[ADC_NUMBER_CAPTURES];
-unsigned int adcCapturePointer;
-
 
 // Last displayed frequency
 unsigned int last_displayed_freq = 0;
@@ -123,7 +119,10 @@ void StopWatch(){
           lcd_home();
           lcd_puts(initial);
       }
-//      enterLPM(mode0);
+      SWstate = readSWs();
+      if (SWstate != 0x00){
+          __bis_SR_register(LPM0_bits + GIE);
+      }
       while(1){
           if (state == state2){
               SWstate = readSWs();
@@ -156,7 +155,7 @@ void StopWatch(){
 
                   cursor_off;
           }else{
-              continue;
+              __bis_SR_register(LPM0_bits + GIE);
           }
         }else{
             TA0CTL = MC_0;
@@ -184,7 +183,6 @@ void GenTones(){
         ADC10CTL0 &= ~ADC10ON; // Don't get into interrupt
 
         unsigned int Nadc = ADC10MEM;  // 0-1023 , 1024 voltage levels
-        // float coeff = 1.956;  // coeff = 2000 / 1023;
         float coeff = 1.465;  // coeff = 1500 / 1023; WIP
         float f_out = coeff * Nadc + 1000;  // Choose Linear Mapping
         // f_out = m*Nadc + n
@@ -200,41 +198,3 @@ void GenTones(){
     }
     TA1CTL = MC_0 ; // Stop Timer
 }
-//-------------------------------------------------------------
-//              Signal Shape
-//-------------------------------------------------------------
-// void Signal_shape(){
-//         while(state == state4){
-//             ADC10CTL0 |= ENC + ADC10SC;             // Start sampling
-//             __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
-//             ADC10CTL0 &= ~ADC10ON; // Don't get into interrupt
-//             char * strLCD;
-//             if(adcCapturePointer < ADC_NUMBER_CAPTURES) adcCaptureValues[adcCapturePointer++] = ADC10MEM;
-//             else {
-//                 adcCapturePointer = 0;
-//                 unsigned int i;
-//                 unsigned int low_val_counter;
-//                 unsigned int high_val_counter;
-//                 unsigned int tri_counter;
-//                 low_val_counter = 0;
-//                 high_val_counter = 0;
-//                 tri_counter = 0;
-//                 for (i=1;i<ADC_NUMBER_CAPTURES-1;i++){
-//                     //pwm
-//                     if(adcCaptureValues[i] <= 5) low_val_counter ++;
-//                     else if (adcCaptureValues[i] >= 800) high_val_counter ++;
-//                     // tri
-//                     if(abs(2*adcCaptureValues[i]-adcCaptureValues[i-1]-adcCaptureValues[i+1])<3) tri_counter++;
-
-
-//                 }
-//                 if (low_val_counter > 5 && high_val_counter > 5) strLCD = "pwm";
-//                 else if (tri_counter > 16) strLCD = "tri";
-//                 else strLCD = "sin";
-//                 DelayMs(500);
-//                 write_signal_shape_tmp_LCD();
-//                 lcd_puts(strLCD);
-//             }
-
-//         }
-// }
