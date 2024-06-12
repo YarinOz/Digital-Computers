@@ -11,6 +11,7 @@ unsigned char SWstate;
 unsigned int adcCaptureValues[ADC_NUMBER_CAPTURES];
 unsigned int adcCapturePointer;
 
+
 // Last displayed frequency
 unsigned int last_displayed_freq = 0;
 
@@ -25,6 +26,7 @@ void FreqMeas(){
     char strFreq[6] = {'\0'};
 
     freq_template_LCD(); // Write template of Frequency
+    last_displayed_freq = 0 ;
     TA1CTL |= TASSEL_2 + MC_2 + TACLR; // start Timer
 
     while (state == state1) {

@@ -33,6 +33,7 @@ void main(void){
 
       case state3: ; //PB2
         enable_interrupts();  // Enable to Cut the state
+        lcd_clear();          // Clear LCD screen
         GenTones();
         break;
                 
