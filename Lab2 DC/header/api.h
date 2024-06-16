@@ -5,8 +5,9 @@
 
 extern void StopWatch();
 extern void startTimerA0();
+extern void startTimerA0RT();
 extern void FreqMeas();
 extern void GenTones();
-// extern void RTLAB();
+extern void Bedilugim2();
 
 #endif

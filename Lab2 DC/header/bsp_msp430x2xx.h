@@ -49,7 +49,15 @@
 #define PB0                0x01   // P1.0
 #define PB1                0x02  // P1.1
 #define PB2                0x04  // P1.2
-#define PB3                0x10   // P2.0
+#define PB3                0x02   // P2.1
+// PB3 RT
+#define PB3sArrPort         P2IN
+#define PB3sArrIntPend      P2IFG
+#define PB3sArrIntEn        P2IE
+#define PB3sArrIntEdgeSel   P2IES
+#define PB3sArrPortSel      P2SEL
+#define PB3sArrPortDir      P2DIR
+#define PB3sArrPortOut      P2OUT
 
 
 extern void GPIOconfig(void);
