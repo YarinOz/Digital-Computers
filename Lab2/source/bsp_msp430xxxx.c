@@ -39,6 +39,13 @@ void GPIOconfig(void){
   PBsArrIntEdgeSel &= ~0x0C;         // pull-down mode  P1.2 - '0'
   PBsArrIntEn |= 0x07;               // P1.0-2 - '1'
   PBsArrIntPend &= ~0xFF;            // clear pending interrupts P1.0-P1.3 all P1
+  // PB3 RT
+  PB3sArrPortSel &= ~BIT1;           //
+  PB3sArrPortOut &= ~BIT1;            // Set P2Out to '0'
+  PB3sArrPortDir &= ~BIT1;            // P2.1 - Input ('0')
+  PB3sArrIntEdgeSel &= ~BIT1;         // pull-down mode  P2.1 - '0'
+  PB3sArrIntEn |= BIT1;               // P1.0-2 - '1'
+  PB3sArrIntPend &= ~BIT1;            // clear pending interrupts P2.1
 
   _BIS_SR(GIE);                     // enable interrupts globally
 }

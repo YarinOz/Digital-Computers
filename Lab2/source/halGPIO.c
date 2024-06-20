@@ -326,7 +326,7 @@ __interrupt void ADC10_ISR (void)
     }
 }
 //*********************************************************************
-//            SWitches Vector Interrupt Service Routine
+//            SWitches Vector Interrupt Service Routine PORT2
 //*********************************************************************
  #pragma vector=PORT2_VECTOR
  __interrupt void Switches (void)
@@ -334,7 +334,11 @@ __interrupt void ADC10_ISR (void)
     delay(debounceVal);
     if (SWsArrIntPend & 0x01){
         SWsArrIntPend &= ~0x01;
-    } // Check if interrupt occurred on P2.0
+    } // Check if interrupt occurred on P2.1
+    else if(PB3sArrIntPend & PB3){
+        state = state4;
+        PB3sArrIntPend &= ~PB3;
+    }
             switch(lpm_mode){
          case mode0:
           LPM0_EXIT; // must be called from ISR only

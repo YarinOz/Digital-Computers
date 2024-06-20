@@ -11,6 +11,30 @@ unsigned char SWstate;
 // Last displayed frequency
 unsigned int last_displayed_freq = 0;
 
+
+//-------------------------------------------------------------
+//      Print B to LCD skipping modulus31
+//-------------------------------------------------------------
+void Bedilugim2(){
+    int pointer = 0;
+    lcd_home();
+    while(state==state4){
+        if (pointer==16){
+            lcd_new_line;
+        }
+        else if(pointer==32){
+            lcd_home();
+            pointer = 0;
+        }
+        lcd_puts("B");
+        startTimerA0RT();
+        startTimerA0RT();
+        lcd_cursor_left();
+        lcd_puts(" ");
+        cursor_off;
+        pointer++;
+    }
+}
 //-------------------------------------------------------------
 //      Frequency Measurement fin=SMCLK/#(SM cycles between 2 Rising edges)
 //-------------------------------------------------------------
@@ -172,6 +196,14 @@ void startTimerA0(){
     TACCR0 = 0xFFFF;  // Timer Cycles - max
     TA0CTL = TASSEL_2 + MC_3 + ID_3;  //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
     // ACLK doesn't work on our msp, so we have to use smclk and divide the freq to get to 1 sec.
+    __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
+}
+//-------------------------------------------------------------
+//              StartTimer For Bedilugim2
+//-------------------------------------------------------------
+void startTimerA0RT(){
+    TACCR0 = 0xE666;  // Timer Cycles - max
+    TA0CTL = TASSEL_2 + MC_3 + ID_3;  //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
     __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
 }
 //-------------------------------------------------------------

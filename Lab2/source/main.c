@@ -40,7 +40,7 @@ void main(void){
       case state4: //PB3 RT
         enable_interrupts();  // Enable to Cut the state
         lcd_clear();          // Clear LCD screen
-        // RTLAB();
+        Bedilugim2();
         break;
     }
   }
