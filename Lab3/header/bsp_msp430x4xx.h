@@ -41,6 +41,19 @@
 #define BuzzPortDir        P2DIR
 #define BuzzPortOut        P2OUT
 
+//  Keypad abstraction
+#define KeypadPortSel         P10SEL
+#define KeypadPortDIR         P10DIR
+#define KeypadPortOUT         P10OUT
+#define KeypadPortIN         P10IN
+#define KeypadIRQPort         P2IN  // P2.1 IRQ
+#define KeypadIRQIntPend      P2IFG
+#define KeypadIRQIntEn        P2IE
+#define KeypadIRQIntEdgeSel   P2IES
+#define KeypadIRQPortSel      P2SEL
+#define KeypadIRQPortDir      P2DIR
+#define KeypadIRQPortOut      P2OUT
+
 // PushButtons abstraction
 #define PBsArrPort         P1IN
 #define PBsArrIntPend      P1IFG
@@ -59,7 +72,10 @@ extern void GPIOconfig(void);
 extern void TIMER0_A0_config(void);
 extern void TIMER1_A2_config(void);
 extern void TIMER1_A1_config(void);
-extern void ADCconfig(void);
+// extern void ADCconfig(void);
+extern void DMA_config(void);
+extern void DMA_config_RT(void);
+extern void StopAllTimers(void);
 
 #endif
 

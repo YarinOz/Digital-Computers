@@ -16,19 +16,24 @@ void GPIOconfig(void){
   LCD_CTL_SEL  &= ~0xE0;   // Bit clear P2.5-P2.7
   
   // Generator Setup
-  GenPortDir &=  ~BIT4;               // P2.4 Input Capture = '1'
-  GenPortSel |=  BIT4;              // P2.4 Select = '1'
+//   GenPortDir &=  ~BIT4;               // P2.4 Input Capture = '1'
+//   GenPortSel |=  BIT4;              // P2.4 Select = '1'
 
   // Buzzer Setup
-  BuzzPortDir |= BIT2;             // P2.2 Output compare - '1'
-  BuzzPortSel |= BIT2;             // P2.2 Select = '1'
-  BuzzPortOut &= ~BIT2;             // P2.2 out = '0'
+//   BuzzPortDir |= BIT2;             // P2.2 Output compare - '1'
+//   BuzzPortSel |= BIT2;             // P2.2 Select = '1'
+//   BuzzPortOut &= ~BIT2;             // P2.2 out = '0'
+
+    // Keypad Setup
+  KeypadPortSel &= ~0xFF;
+  KeypadPortDIR = 0x0F; //10.0-10.3 output, 10.4-10.7 input
+  KeypadPortOUT = 0x00; // CLR output
 
  // Switches Setup
-  SWsArrPortDir  &= 0xFE;
-  SWsArrPortSel  &= 0xFE;
-  SWsArrIntEn  |= 0x01;
-  SWsArrIntPend &= ~0xFF;           // clear pending interrupts P2.0-2
+//   SWsArrPortDir  &= 0xFE;
+//   SWsArrPortSel  &= 0xFE;
+//   SWsArrIntEn  |= 0x01;
+//   SWsArrIntPend &= ~0xFF;           // clear pending interrupts P2.0-2
 
   // PushButtons Setup
   PBsArrPortSel &= ~0x07;           //
@@ -70,8 +75,30 @@ void TIMER0_A0_config(void){
 //------------------------------------------------------------------------------------- 
 //            ADC configuration
 //-------------------------------------------------------------------------------------
-void ADCconfig(void){
-      ADC10CTL0 = ADC10SHT_2 + ADC10ON+ SREF_0 + ADC10IE;  // 16*ADCLK+ Turn on, set ref to Vcc and Gnd, and Enable Interrupt
-      ADC10CTL1 = INCH_3 + ADC10SSEL_3;     // Input A3 and SMCLK, was |
-      ADC10AE0 |= BIT3;                         // P1.3 ADC option select
+// void ADCconfig(void){
+//       ADC10CTL0 = ADC10SHT_2 + ADC10ON+ SREF_0 + ADC10IE;  // 16*ADCLK+ Turn on, set ref to Vcc and Gnd, and Enable Interrupt
+//       ADC10CTL1 = INCH_3 + ADC10SSEL_3;     // Input A3 and SMCLK, was |
+//       ADC10AE0 |= BIT3;                         // P1.3 ADC option select
+// }
+//-------------------------------------------------------------------------------------
+//            DMA configuration
+//-------------------------------------------------------------------------------------
+void DMA_config(void){
+    DMA0DA = (int) &TBCCR0;
+    DMA0CTL = DMAEN + DMASRCINCR_3 + DMASWDW + DMAIE; //repeated-single, source inc, word-word trans, Interupt enable
+    DMACTL0 = DMA0TSEL_1; //TACCR2_IFG trigger
+}
+
+void DMA_config_RT(void){ // For Main Lab
+
+}
+//-------------------------------------------------------------------------------------
+//            Stop All Timers
+//-------------------------------------------------------------------------------------
+void StopAllTimers(void){
+
+    TACTL = MC_0; // halt timer A
+    TBCTL = MC_0; // halt timer B
+    TBCCTL1 = 0x00; // stop PWM
+    DMA0CTL = 0; // Stop DMA0
 }

@@ -3,10 +3,10 @@
 
 #include  "../header/halGPIO.h"     // private library - HAL layer
 
-extern void StopWatch();
 extern void startTimerA0();
-extern void FreqMeas();
-extern void GenTones();
+extern void IdiomRecorder(char *idiom_recorder);
+extern void Merge();
+extern void DMALEDS();
 // extern void RTLAB();
 
 #endif
