@@ -9,6 +9,11 @@
 void GPIOconfig(void){
   WDTCTL = WDTHOLD | WDTPW;     // Stop WDT
    
+  // LEDs 8-bit Array Port configuration
+  LEDsArrPortSel &= ~0xFF;            // GPIO capability
+  LEDsArrPortDir |= 0xFF;             // output dir
+  LEDsArrPort = 0x00;				  // clear all LEDs
+
   // LCD configuration
   LCD_DATA_WRITE &= ~0xFF;
   LCD_DATA_DIR |= 0xF0;    // P1.4-P1.7 To Output('1')
