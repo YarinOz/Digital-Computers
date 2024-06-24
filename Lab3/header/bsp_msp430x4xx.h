@@ -45,7 +45,7 @@
 #define KeypadPortSel         P10SEL
 #define KeypadPortDIR         P10DIR
 #define KeypadPortOUT         P10OUT
-#define KeypadPortIN         P10IN
+#define KeypadPortIN          P10IN
 #define KeypadIRQPort         P2IN  // P2.1 IRQ
 #define KeypadIRQIntPend      P2IFG
 #define KeypadIRQIntEn        P2IE
@@ -70,8 +70,8 @@
 
 extern void GPIOconfig(void);
 extern void TIMER0_A0_config(void);
-extern void TIMER1_A2_config(void);
-extern void TIMER1_A1_config(void);
+//extern void TIMER1_A2_config(void);
+//extern void TIMER1_A1_config(void);
 // extern void ADCconfig(void);
 extern void DMA_config(void);
 extern void DMA_config_RT(void);

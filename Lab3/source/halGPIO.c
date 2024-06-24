@@ -11,9 +11,6 @@ unsigned char SWstate;
 void sysConfig(void){ 
     GPIOconfig();
     TIMER0_A0_config();
-    TIMER1_A1_config();
-    TIMER1_A2_config();
-    ADCconfig();
 }
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
@@ -218,48 +215,6 @@ void DelayMs(unsigned int cnt){
     for(i=cnt ; i>0 ; i--) DelayUs(1000); // tha command asm("nop") takes raphly 1usec
 }
 //*********************************************************************
-//            TimerA1 Interrupt Service Routine
-//*********************************************************************
-#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector = TIMER1_A1_VECTOR
-__interrupt void TIMER1_A1_ISR(void)
-#elif defined(__GNUC__)
-void __attribute__ ((interrupt(TIMER1_A1_VECTOR))) TIMER1_A1_ISR (void)
-#else
-#error Compiler not supported!
-#endif
-{
-  switch(__even_in_range(TA1IV, 0x0A))
-  {
-      case  TA1IV_NONE: break;              // Vector  0:  No interrupt
-      case  TA1IV_TACCR1:                   // Vector  2:  TACCR1 CCIFG
-          TA1CTL &= ~(TAIFG);
-        break;
-      case TA1IV_TACCR2:                    // Vector  4:  TACCR2 CCIFG
-          if (TA1CCTL2 & CCI)                 // Capture Input Pin Status
-                  {
-                      // Rising Edge was captured
-                      if (!Count)
-                      {
-                          REdge1 = TA1CCR2;
-                          Count++;
-                      }
-                      else
-                      {
-                          REdge2 = TA1CCR2;
-                          TA1CCTL2 &= ~CCIE;
-                          Count=0x0;
-                          __bic_SR_register_on_exit(LPM0_bits + GIE);  // Exit LPM0 on return to main
-                      }
-                  }
-          break;
-      case TA1IV_6: break;                  // Vector  6:  Reserved CCIFG
-      case TA1IV_8: break;                  // Vector  8:  Reserved CCIFG
-      case TA1IV_TAIFG: break;              // Vector 10:  TAIFG
-      default:  break;
-  }
-}
-//*********************************************************************
 //            TimerA0 Interrupt Service Routine
 //*********************************************************************
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
@@ -275,12 +230,11 @@ void __attribute__ ((interrupt(TIMER0_A0_VECTOR))) Timer_A (void)
     TACTL = MC_0+TACLR;
 }
 //*********************************************************************
-//            ADC10 Vector Interrupt Service Routine
+//            DMA ISR
 //*********************************************************************
-#pragma vector = ADC10_VECTOR
-__interrupt void ADC10_ISR (void)
-{
-    __bic_SR_register_on_exit(CPUOFF);
+#pragma vector = DMA_VECTOR
+__interrupt void DMA_ISR (void){
+    StopAllTimers();
 }
 //*********************************************************************
 //            Port1 Interrupt Service Routine
@@ -329,12 +283,12 @@ __interrupt void ADC10_ISR (void)
 //            SWitches Vector Interrupt Service Routine
 //*********************************************************************
  #pragma vector=PORT2_VECTOR
- __interrupt void Switches (void)
+ __interrupt void keypadIRQ (void)
  {
     delay(debounceVal);
-    if (SWsArrIntPend & 0x01){
-        SWsArrIntPend &= ~0x01;
-    } // Check if interrupt occurred on P2.0
+    if (KeypadIRQIntPend & 0x02){
+        KeypadIRQIntPend &= ~0x02;
+    } // Check if interrupt occurred on P2.1
             switch(lpm_mode){
          case mode0:
           LPM0_EXIT; // must be called from ISR only

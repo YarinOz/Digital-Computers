@@ -20,11 +20,10 @@ extern void enable_interrupts();
 extern void disable_interrupts();
 extern void freq_template_LCD();
 extern unsigned char readSWs(void);
-// extern void write_signal_shape_tmp_LCD();
 
 extern __interrupt void PBs_handler(void);
-extern __interrupt void Switches(void);
-extern __interrupt void ADC10_ISR(void);
+extern __interrupt void keypadIRQ(void);
+extern __interrupt void DMA_ISR(void);
 
 #endif
 

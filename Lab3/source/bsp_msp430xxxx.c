@@ -55,17 +55,17 @@ void GPIOconfig(void){
 //-------------------------------------------------------------------------------------
 //            Timer1 A2 configuration - For state1
 //-------------------------------------------------------------------------------------
-void TIMER1_A2_config(void){
-    TA1CCTL2 = CAP + CM_1 + CCIE + SCS + CCIS_0; // Timer1 configuration;
-    // CM_1 - * Capture mode: 1 - pos. edge */
-    // SCS - /* Capture synchronize */
-}
-//-----------------------------------------------------s--------------------------------
-//            Timer1 A1 configuration - For state3
-//-------------------------------------------------------------------------------------
-void TIMER1_A1_config(void){
-    TA1CCTL1 =  OUTMOD_7; // TA1CCR1 reset/set;
-}
+//void TIMER1_A2_config(void){
+//    TA1CCTL2 = CAP + CM_1 + CCIE + SCS + CCIS_0; // Timer1 configuration;
+//    // CM_1 - * Capture mode: 1 - pos. edge */
+//    // SCS - /* Capture synchronize */
+//}
+////-----------------------------------------------------s--------------------------------
+////            Timer1 A1 configuration - For state3
+////-------------------------------------------------------------------------------------
+//void TIMER1_A1_config(void){
+//    TA1CCTL1 =  OUTMOD_7; // TA1CCR1 reset/set;
+//}
 //------------------------------------------------------------------------------------- 
 //            Timer 1sec configuration - For state2
 //-------------------------------------------------------------------------------------
