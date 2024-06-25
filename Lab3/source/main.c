@@ -10,7 +10,10 @@ char data_matrix[][51]={
   "shed crocodile tears", "Close but no cigar",
   "Cut from the same cloth", "Strike while the iron’s hot"
 };
-char idiom_recorder[32];
+char idiom_recorder[33]; // 32 + '\0'
+unsigned int EndOfRecord = 0;
+unsigned int i = 0;
+unsigned int KB;
 
 void main(void){
   
@@ -30,7 +33,7 @@ void main(void){
 
       case state1: //PB0
         enable_interrupts();  // Enable to Cut the state
-        IdiomRecorder(idiom_recorder);  // 
+        IdiomRecorder();  // 
         break;
 
       case state2: //PB1

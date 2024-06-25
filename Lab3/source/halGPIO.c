@@ -1,9 +1,8 @@
 #include  "../header/halGPIO.h"     // private library - HAL layer
 
 // Global Variables
-unsigned int Count = 0x0;
-unsigned int REdge1, REdge2;
-unsigned char SWstate;
+extern unsigned int preKB=0;
+extern unsigned int flag=0;
 
 //--------------------------------------------------------------------
 //             System Configuration  
@@ -279,6 +278,104 @@ __interrupt void DMA_ISR (void){
          break;
     }
 }
+//-------------------------------------------------------------
+//             print char to LCD
+//-------------------------------------------------------------
+void printChar(){
+    if ((flag==0) && (KB != preKB)){  
+        i++;
+        if (KB<10 && KB!=0){
+            lcd_data(0x30 + KB);
+        }
+        else if(KB==0){
+            lcd_data('0');
+        }
+        else if (KB==15){
+            lcd_data('A');
+        }
+        else if (KB==14){
+            lcd_data('B');
+        }
+        else if (KB==13){
+            lcd_data('F');
+        }
+        else if(KB==12){
+            lcd_data('E');
+        }
+        else if(KB==11){
+            lcd_data('D');
+        }
+        else if(KB==10){
+            lcd_data('C');
+        }
+    }
+    else if(flag==1 && (KB != preKB)){
+        i++;
+        if (KB==0){
+            lcd_data('U');
+        }
+        else if (KB=1){
+            lcd_data('G');
+        }
+        else if (KB=2){
+            lcd_data('H');
+        }
+        else if (KB=3){
+            lcd_data('I');
+        }
+        else if (KB=4){
+            lcd_data('K');
+        }
+        else if (KB=5){
+            lcd_data('L');
+        }
+        else if (KB=6){
+            lcd_data('M');
+        }
+        else if (KB=7){
+            lcd_data('O');
+        }
+        else if (KB=8){
+            lcd_data('P');
+        }
+        else if (KB=9){
+            lcd_data('Q');
+        }
+        else if (KB==15){
+            lcd_data('S');
+        }
+        else if (KB==14){
+            lcd_data('W');
+        }
+        else if (KB==13){
+            lcd_data('Y');
+        }
+        else if(KB==12){
+            lcd_data('R');
+        }
+        else if(KB==11){
+            lcd_data('N');
+        }
+        else if(KB==10){
+            lcd_data('J');
+        }
+    }
+    else if(flag==2){
+        i++;
+        if (KB==0){
+            lcd_data('V');
+        }
+        else if (KB==15){
+            lcd_data('T');
+        }
+        else if (KB==14){
+            lcd_data('X');
+        }
+        else if (KB==13){
+            lcd_data('Z');
+        }
+    }
+}
 //*********************************************************************
 //            SWitches Vector Interrupt Service Routine
 //*********************************************************************
@@ -286,24 +383,77 @@ __interrupt void DMA_ISR (void){
  __interrupt void keypadIRQ (void)
  {
     delay(debounceVal);
-    if (KeypadIRQIntPend & 0x02){
-        KeypadIRQIntPend &= ~0x02;
-    } // Check if interrupt occurred on P2.1
-            switch(lpm_mode){
-         case mode0:
-          LPM0_EXIT; // must be called from ISR only
-          break;
-         case mode1:
-          LPM1_EXIT; // must be called from ISR only
-          break;
-         case mode2:
-          LPM2_EXIT; // must be called from ISR only
-          break;
-                 case mode3:
-          LPM3_EXIT; // must be called from ISR only
-          break;
-                 case mode4:
-          LPM4_EXIT; // must be called from ISR only
-          break;
-     }
- }
+//---------------------------------------------------------------------
+//            keypad ISR
+//---------------------------------------------------------------------
+    if(KeypadIRQIntPend & 0x02){    // if keypad has been pressed find value
+        flag++;
+        startTimerA0();
+        preKB = KB;
+        KB = 75;
+        KeypadPortOUT = 0x0E;
+        if ( ( KeypadPortIN & 0x10 ) == 0 )  KB = 13;
+        else if ( ( KeypadPortIN & 0x20 ) == 0 )  KB = 14;
+        else if ( ( KeypadPortIN & 0x40 ) == 0 )  KB = 0;
+        else if ( ( KeypadPortIN & 0x80 ) == 0 )  KB = 15;
+
+        KeypadPortOUT = 0x0D;
+        if ( ( KeypadPortIN & 0x10 ) == 0 )  KB = 12;
+        else if ( ( KeypadPortIN & 0x20 ) == 0 )  KB = 9;
+        else if ( ( KeypadPortIN & 0x40 ) == 0 )  KB = 8;
+        else if ( ( KeypadPortIN & 0x80 ) == 0 )  KB = 7;
+
+        KeypadPortOUT = 0x0B;
+        if ( ( KeypadPortIN & 0x10 ) == 0 )  KB = 11;
+        else if ( ( KeypadPortIN & 0x20 ) == 0 )  KB = 6;
+        else if ( ( KeypadPortIN & 0x40 ) == 0 )  KB = 5;
+        else if ( ( KeypadPortIN & 0x80 ) == 0 )  KB = 4;
+
+        KeypadPortOUT = 0x07;
+        if ( ( KeypadPortIN & 0x10 ) == 0 )  KB = 10;
+        else if ( ( KeypadPortIN & 0x20 ) == 0 )  KB = 3;
+        else if ( ( KeypadPortIN & 0x40 ) == 0 )  KB = 2;
+        else if ( ( KeypadPortIN & 0x80 ) == 0 )  KB = 1;
+
+        if (preKB == KB && flag==0){
+            flag = 1;
+        }
+        else if(preKB == KB && flag==1){
+            flag = 2;
+        }
+        else{
+            flag = 0;
+        }
+        if (i==17){
+            lcd_new_line;
+        }
+        printChar();
+        delay(15000);   // For keypad debounce
+        KeypadPortOUT &= ~0x0F;  // Reset Row1-4
+        KeypadIRQIntPend &= ~BIT1; // Reset Flag
+    }
+//---------------------------------------------------------------------
+//            Exit from a given LPM
+//---------------------------------------------------------------------
+    switch(lpm_mode){
+    case mode0:
+        LPM0_EXIT; // must be called from ISR only
+        break;
+
+    case mode1:
+        LPM1_EXIT; // must be called from ISR only
+        break;
+
+    case mode2:
+        LPM2_EXIT; // must be called from ISR only
+        break;
+
+    case mode3:
+        LPM3_EXIT; // must be called from ISR only
+        break;
+
+    case mode4:
+        LPM4_EXIT; // must be called from ISR only
+        break;
+    }
+}

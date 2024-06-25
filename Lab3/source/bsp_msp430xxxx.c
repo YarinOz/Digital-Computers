@@ -10,9 +10,9 @@ void GPIOconfig(void){
   WDTCTL = WDTHOLD | WDTPW;     // Stop WDT
    
   // LEDs 8-bit Array Port configuration
-  LEDsArrPortSel &= ~0xFF;            // GPIO capability
-  LEDsArrPortDir |= 0xFF;             // output dir
-  LEDsArrPort = 0x00;				  // clear all LEDs
+  // LEDsArrPortSel &= ~0xFF;            // GPIO capability
+  // LEDsArrPortDir |= 0xFF;             // output dir
+  // LEDsArrPort = 0x00;				  // clear all LEDs
 
   // LCD configuration
   LCD_DATA_WRITE &= ~0xFF;
@@ -33,6 +33,12 @@ void GPIOconfig(void){
   KeypadPortSel &= ~0xFF;
   KeypadPortDIR = 0x0F; //10.0-10.3 output, 10.4-10.7 input
   KeypadPortOUT = 0x00; // CLR output
+    // Keypad IRQ Setup
+  KeypadIRQPortSel &= ~0x02;
+  KeypadIRQPortDir &= ~0x02;             // P2.1 input
+  KeypadIRQIntEdgeSel |= 0x02;         // pull-up mode  P2.1 - '1'
+  KeypadIRQIntEn |= 0x02;               // P2.1 - '1'
+  KeypadIRQIntPend &= ~0x02;            // clear pending interrupts P2.1
 
  // Switches Setup
 //   SWsArrPortDir  &= 0xFE;
@@ -73,7 +79,7 @@ void TIMER0_A0_config(void){
     WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
     TA0CCTL0 = CCIE;
     TACCR0 = 0xFFFF;
-    TA0CTL = TASSEL_2 + MC_0 + ID_3;  //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
+    TA0CTL = TASSEL_2 + MC_3 + ID_3;  //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
     __bis_SR_register(GIE);       //interrupt
 
 } 

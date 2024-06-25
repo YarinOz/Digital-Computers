@@ -3,21 +3,31 @@
 #include "stdio.h"
 
 // Global Variables
-unsigned char SWstate;
 char strMerge[102];
 char LEDarray[9] = {128, 64, 32, 16, 8, 4, 23, 13, 40};
 
 //-------------------------------------------------------------
 //             Idiom Recorder
 //-------------------------------------------------------------
-void IdiomRecorder(char *idiom_recorder){
-    lcd_clear();
-    lcd_home();
-    lcd_puts("Enter Idiom: ");
-    lcd_goto(0x40);
-    // hal func to get the idiom from keypad and put in idiom_recorder and display on LCD
-
-
+void IdiomRecorder(){
+    while(state==state1){
+        disable_interrupts();  // Disable GIE
+        // StopAllTimers();    // Stop All Timers(A,DMA)
+        // Check If recording was finished by user or by reaching notes limit
+        if(EndOfRecord || i == 33){  // 32 prints
+            lcd_clear();
+            lcd_home();
+            lcd_puts("Finished Rec.");
+            lcd_new_line;
+            idiom_recorder[i] = '\0'; // End the string
+            startTimerA0(); // Start Timer for StopWatch
+            startTimerA0(); // Start Timer for StopWatch
+            i = 0; // Reset i
+            EndOfRecord = 0;
+            state = state0;
+        }
+        enable_interrupts();  // Enable GIE
+    }
 }
 //-------------------------------------------------------------
 //             Merge

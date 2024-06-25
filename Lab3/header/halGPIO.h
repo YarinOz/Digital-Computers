@@ -10,6 +10,8 @@
 
 extern enum FSMstate state;   // global variable
 extern enum SYSmode lpm_mode; // global variable
+extern char idiom_recorder[33];
+extern unsigned int EndOfRecord, i, KB;
 
 extern void sysConfig(void);
 extern void SetByteToPort(char); // Added By RK
@@ -20,6 +22,7 @@ extern void enable_interrupts();
 extern void disable_interrupts();
 extern void freq_template_LCD();
 extern unsigned char readSWs(void);
+extern void printChar();
 
 extern __interrupt void PBs_handler(void);
 extern __interrupt void keypadIRQ(void);
