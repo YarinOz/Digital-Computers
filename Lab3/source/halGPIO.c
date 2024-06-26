@@ -1,5 +1,6 @@
 #include  "../header/halGPIO.h"     // private library - HAL layer
-
+#define LCD_NEW_LINE   {lcd_cmd(0xC0);} // go to second line on the LCD
+#define LCD_CLEAR_LAST {lcd_cmd(0x10);} // move cursor left to clear last character
 // Global Variables
 extern unsigned int preKB=0;
 extern unsigned int flag=0;
@@ -278,182 +279,138 @@ __interrupt void DMA_ISR (void){
          break;
     }
 }
-//-------------------------------------------------------------
-//             print char to LCD
-//-------------------------------------------------------------
-void printChar(){
-    if ((flag==0) && (KB != preKB)){  
-        i++;
-        if (KB<10 && KB!=0){
-            lcd_data(0x30 + KB);
-        }
-        else if(KB==0){
-            lcd_data('0');
-        }
-        else if (KB==15){
-            lcd_data('A');
-        }
-        else if (KB==14){
-            lcd_data('B');
-        }
-        else if (KB==13){
-            lcd_data('F');
-        }
-        else if(KB==12){
-            lcd_data('E');
-        }
-        else if(KB==11){
-            lcd_data('D');
-        }
-        else if(KB==10){
-            lcd_data('C');
-        }
-    }
-    else if(flag==1 && (KB != preKB)){
-        i++;
-        if (KB==0){
-            lcd_data('U');
-        }
-        else if (KB=1){
-            lcd_data('G');
-        }
-        else if (KB=2){
-            lcd_data('H');
-        }
-        else if (KB=3){
-            lcd_data('I');
-        }
-        else if (KB=4){
-            lcd_data('K');
-        }
-        else if (KB=5){
-            lcd_data('L');
-        }
-        else if (KB=6){
-            lcd_data('M');
-        }
-        else if (KB=7){
-            lcd_data('O');
-        }
-        else if (KB=8){
-            lcd_data('P');
-        }
-        else if (KB=9){
-            lcd_data('Q');
-        }
-        else if (KB==15){
-            lcd_data('S');
-        }
-        else if (KB==14){
-            lcd_data('W');
-        }
-        else if (KB==13){
-            lcd_data('Y');
-        }
-        else if(KB==12){
-            lcd_data('R');
-        }
-        else if(KB==11){
-            lcd_data('N');
-        }
-        else if(KB==10){
-            lcd_data('J');
-        }
-    }
-    else if(flag==2){
-        i++;
-        if (KB==0){
-            lcd_data('V');
-        }
-        else if (KB==15){
-            lcd_data('T');
-        }
-        else if (KB==14){
-            lcd_data('X');
-        }
-        else if (KB==13){
-            lcd_data('Z');
-        }
-    }
-}
 //*********************************************************************
 //            SWitches Vector Interrupt Service Routine
 //*********************************************************************
  #pragma vector=PORT2_VECTOR
  __interrupt void keypadIRQ (void)
  {
-    delay(debounceVal);
-//---------------------------------------------------------------------
-//            keypad ISR
-//---------------------------------------------------------------------
-    if(KeypadIRQIntPend & 0x02){    // if keypad has been pressed find value
-//        flag++;
-//        startTimerA0();
-        preKB = KB;
-        KB = 75;
-        KeypadPortOUT = 0x0E;
-        if ( ( KeypadPortIN & 0x10 ) == 0 )  KB = 13;
-        else if ( ( KeypadPortIN & 0x20 ) == 0 )  KB = 14;
-        else if ( ( KeypadPortIN & 0x40 ) == 0 )  KB = 0;
-        else if ( ( KeypadPortIN & 0x80 ) == 0 )  KB = 15;
+      delay(debounceVal);
+      delay(debounceVal);
+      delay(debounceVal);
+      delay(debounceVal);
+      delay(debounceVal);
+      delay(debounceVal);
+      delay(debounceVal);
+      delay(debounceVal);
+      delay(debounceVal);
+      if(KeypadIRQIntPend & 0x02) { // if keypad has been pressed find value
+          preKB = KB;
+          KB = 75;
+          KeypadPortOUT = 0x0E;
+          if ( ( KeypadPortIN & 0x10 ) == 0 )  KB = 13;
+          else if ( ( KeypadPortIN & 0x20 ) == 0 )  KB = 14;
+          else if ( ( KeypadPortIN & 0x40 ) == 0 )  KB = 16;
+          else if ( ( KeypadPortIN & 0x80 ) == 0 )  KB = 15;
 
-        KeypadPortOUT = 0x0D;
-        if ( ( KeypadPortIN & 0x10 ) == 0 )  KB = 12;
-        else if ( ( KeypadPortIN & 0x20 ) == 0 )  KB = 9;
-        else if ( ( KeypadPortIN & 0x40 ) == 0 )  KB = 8;
-        else if ( ( KeypadPortIN & 0x80 ) == 0 )  KB = 7;
+          KeypadPortOUT = 0x0D;
+          if ( ( KeypadPortIN & 0x10 ) == 0 )  KB = 12;
+          else if ( ( KeypadPortIN & 0x20 ) == 0 )  KB = 9;
+          else if ( ( KeypadPortIN & 0x40 ) == 0 )  KB = 8;
+          else if ( ( KeypadPortIN & 0x80 ) == 0 )  KB = 7;
 
-        KeypadPortOUT = 0x0B;
-        if ( ( KeypadPortIN & 0x10 ) == 0 )  KB = 11;
-        else if ( ( KeypadPortIN & 0x20 ) == 0 )  KB = 6;
-        else if ( ( KeypadPortIN & 0x40 ) == 0 )  KB = 5;
-        else if ( ( KeypadPortIN & 0x80 ) == 0 )  KB = 4;
+          KeypadPortOUT = 0x0B;
+          if ( ( KeypadPortIN & 0x10 ) == 0 )  KB = 11;
+          else if ( ( KeypadPortIN & 0x20 ) == 0 )  KB = 6;
+          else if ( ( KeypadPortIN & 0x40 ) == 0 )  KB = 5;
+          else if ( ( KeypadPortIN & 0x80 ) == 0 )  KB = 4;
 
-        KeypadPortOUT = 0x07;
-        if ( ( KeypadPortIN & 0x10 ) == 0 )  KB = 10;
-        else if ( ( KeypadPortIN & 0x20 ) == 0 )  KB = 3;
-        else if ( ( KeypadPortIN & 0x40 ) == 0 )  KB = 2;
-        else if ( ( KeypadPortIN & 0x80 ) == 0 )  KB = 1;
+          KeypadPortOUT = 0x07;
+          if ( ( KeypadPortIN & 0x10 ) == 0 )  KB = 10;
+          else if ( ( KeypadPortIN & 0x20 ) == 0 )  KB = 3;
+          else if ( ( KeypadPortIN & 0x40 ) == 0 )  KB = 2;
+          else if ( ( KeypadPortIN & 0x80 ) == 0 )  KB = 1;
 
-        if (preKB == KB && flag==0){
-            flag = 1;
-        }
-        else if(preKB == KB && flag==1){
-            flag = 2;
-        }
-        else{
-            flag = 0;
-        }
-        if (i==17){
-            lcd_new_line;
-        }
-        printChar();
-        delay(15000);   // For keypad debounce
-        KeypadPortOUT &= ~0x0F;  // Reset Row1-4
-        KeypadIRQIntPend &= ~BIT1; // Reset Flag
-    }
-//---------------------------------------------------------------------
-//            Exit from a given LPM
-//---------------------------------------------------------------------
-    switch(lpm_mode){
-    case mode0:
-        LPM0_EXIT; // must be called from ISR only
-        break;
+          if (preKB == KB) {
+              flag++;
+              if (flag > 2) flag = 0; // reset flag after 3 clicks
+              LCD_CLEAR_LAST; // clear last character
+          } else {
+              flag = 0; // reset flag if a different key is pressed
+          }
 
-    case mode1:
-        LPM1_EXIT; // must be called from ISR only
-        break;
+          if (i == 16) {
+              LCD_NEW_LINE;
+              //i=0;
+          }
 
-    case mode2:
-        LPM2_EXIT; // must be called from ISR only
-        break;
+          printChar();
+          i++;
+          if(flag == 1 || flag == 2){
+              i--;
+          }
+          delay(15000); // For keypad debounce
+          delay(15000);
+          KeypadPortOUT &= ~0x0F; // Reset Row1-4
+          KeypadIRQIntPend &= ~BIT1; // Reset Flag
+      }
 
-    case mode3:
-        LPM3_EXIT; // must be called from ISR only
-        break;
+      switch(lpm_mode) {
+          case mode0: LPM0_EXIT; break;
+          case mode1: LPM1_EXIT; break;
+          case mode2: LPM2_EXIT; break;
+          case mode3: LPM3_EXIT; break;
+          case mode4: LPM4_EXIT; break;
+      }
+  }
+//*********************************************************************
+// print chat to LCD
+//*********************************************************************
+  void printChar() {
+      if (KB < 10) {
+          switch (KB) {
+              case 1: lcd_data(flag == 0 ? '1' : (flag == 1 ? 'G' : '1')); 
+                        idiom_recorder[i] = (flag == 0 ? '1' : (flag == 1 ? 'G' : '1'));
+                        break;
+              case 2: lcd_data(flag == 0 ? '2' : (flag == 1 ? 'H' : '2')); 
+                        idiom_recorder[i] = (flag == 0 ? '2' : (flag == 1 ? 'H' : '2'));
+                        break;
+              case 3: lcd_data(flag == 0 ? '3' : (flag == 1 ? 'I' : '3')); 
+                        idiom_recorder[i] = (flag == 0 ? '3' : (flag == 1 ? 'I' : '3'));
+                        break;
+              case 4: lcd_data(flag == 0 ? '4' : (flag == 1 ? 'K' : '4')); 
+                        idiom_recorder[i] = (flag == 0 ? '4' : (flag == 1 ? 'K' : '4'));
+                        break;
+              case 5: lcd_data(flag == 0 ? '5' : (flag == 1 ? 'L' : '5')); 
+                        idiom_recorder[i] = (flag == 0 ? '5' : (flag == 1 ? 'L' : '5'));
+                        break;
+              case 6: lcd_data(flag == 0 ? '6' : (flag == 1 ? 'M' : '6')); 
+                        idiom_recorder[i] = (flag == 0 ? '6' : (flag == 1 ? 'M' : '6'));
+                        break;
+              case 7: lcd_data(flag == 0 ? '7' : (flag == 1 ? 'O' : '7')); 
+                        idiom_recorder[i] = (flag == 0 ? '7' : (flag == 1 ? 'O' : '7'));
+                        break;
+              case 8: lcd_data(flag == 0 ? '8' : (flag == 1 ? 'P' : '8')); 
+                        idiom_recorder[i] = (flag == 0 ? '8' : (flag == 1 ? 'P' : '8'));
+                        break;
+              case 9: lcd_data(flag == 0 ? '9' : (flag == 1 ? 'Q' : '9')); 
+                        idiom_recorder[i] = (flag == 0 ? '9' : (flag == 1 ? 'Q' : '9'));
+                        break;
 
-    case mode4:
-        LPM4_EXIT; // must be called from ISR only
-        break;
-    }
-}
+          }
+      } else {
+          switch (KB) {
+              case 16: lcd_data(flag == 0 ? '0' : (flag == 1 ? 'U' : 'V'));
+                        idiom_recorder[i] = (flag == 0 ? '0' : (flag == 1 ? 'U' : 'V'));
+                        break;
+              case 15: lcd_data(flag == 0 ? 'A' : (flag == 1 ? 'S' : 'T')); 
+                        idiom_recorder[i] = (flag == 0 ? 'A' : (flag == 1 ? 'S' : 'T'));
+                        break;
+              case 14: lcd_data(flag == 0 ? 'B' : (flag == 1 ? 'W' : 'X')); 
+                        idiom_recorder[i] = (flag == 0 ? 'B' : (flag == 1 ? 'W' : 'X'));
+                        break;
+              case 13: lcd_data(flag == 0 ? 'F' : (flag == 1 ? 'Y' : 'Z')); 
+                        idiom_recorder[i] = (flag == 0 ? 'F' : (flag == 1 ? 'Y' : 'Z'));
+                        break;
+              case 12: lcd_data(flag == 0 ? 'E' : 'R'); 
+                        idiom_recorder[i] = (flag == 0 ? 'E' : 'R');
+                        break;
+              case 11: lcd_data(flag == 0 ? 'D' : 'N'); 
+                        idiom_recorder[i] = (flag == 0 ? 'D' : 'N');
+                        break;
+              case 10: lcd_data(flag == 0 ? 'C' : 'J'); 
+                        idiom_recorder[i] = (flag == 0 ? 'C' : 'J');
+                        break;
+          }
+      }
+  }

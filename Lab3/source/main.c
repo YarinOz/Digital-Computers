@@ -17,6 +17,7 @@ unsigned int KB;
 
 void main(void){
   
+  int len,m;
   state = state0;  // start in idle state on RESET
   lpm_mode = mode0;     // start in idle state on RESET
   sysConfig();

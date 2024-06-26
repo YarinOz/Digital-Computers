@@ -11,11 +11,12 @@ char LEDarray[9] = {128, 64, 32, 16, 8, 4, 23, 13, 40};
 //             Idiom Recorder
 //-------------------------------------------------------------
 void IdiomRecorder(){
+    int len,m;
     while(state==state1){
         disable_interrupts();  // Disable GIE
         // StopAllTimers();    // Stop All Timers(A,DMA)
         // Check If recording was finished by user or by reaching notes limit
-        if(EndOfRecord || i == 33){  // 32 prints
+        if(EndOfRecord || i == 32){  // 32 prints
             lcd_clear();
             lcd_home();
             lcd_puts("Finished Rec.");
@@ -26,9 +27,25 @@ void IdiomRecorder(){
             i = 0; // Reset i
             EndOfRecord = 0;
             state = state0;
+            // uncomment to print the idiom_recorder
+            // lcd_clear();
+            // lcd_home();
+            // len=strlen(idiom_recorder);
+            // for (m=0;m<len;m++){
+            //     lcd_data(idiom_recorder[m]);
+            //     if (m==15){
+            //         lcd_new_line;
+            //     }
+            // }
+            // __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
         }
         enable_interrupts();  // Enable GIE
     }
+    // if change state in middle of recording
+    idiom_recorder[i] = '\0'; // End the string
+    i = 0; // Reset i
+    EndOfRecord = 0;
+    __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
 }
 //-------------------------------------------------------------
 //             Merge
@@ -38,12 +55,16 @@ void Merge() {
     char merge1[51], merge2[51];
     char temp1[51], temp2[51];
     int len1, len2;
-    char *ptr1, *ptr2, *ptr_merge;
+    char *ptr1, *ptr2, *ptr_merge, *print;
     char *end1, *end2;
     char *space_pos;
+    int lcdptr = 0;
 
+    lcd_home();
     lcd_puts("First index: ");
     lcd_goto(0x40);
+    delay(debounceVal);
+    delay(debounceVal);
     delay(debounceVal);
     delay(debounceVal);
     __bis_SR_register(LPM0_bits + GIE);
@@ -52,6 +73,8 @@ void Merge() {
     lcd_home();
     lcd_puts("Second index: ");
     lcd_goto(0x40);
+    delay(debounceVal);
+    delay(debounceVal);
     delay(debounceVal);
     delay(debounceVal);
     __bis_SR_register(LPM0_bits + GIE);
@@ -137,7 +160,16 @@ void Merge() {
 
     lcd_clear();
     lcd_home();
-    lcd_puts(strMerge);
+    print = strMerge;
+    while(*print != '\0'){
+        lcd_data(*print);
+        print++;
+        lcdptr++;
+        if(lcdptr==16){
+            lcd_new_line;
+        }
+    }
+    // lcd_puts(strMerge);
     __bis_SR_register(LPM0_bits + GIE);
 }
 
