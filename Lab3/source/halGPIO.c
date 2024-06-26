@@ -333,7 +333,6 @@ __interrupt void DMA_ISR (void){
               LCD_NEW_LINE;
               //i=0;
           }
-
           printChar();
           i++;
           if(flag == 1 || flag == 2){

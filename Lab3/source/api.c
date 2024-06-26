@@ -63,21 +63,19 @@ void Merge() {
     lcd_home();
     lcd_puts("First index: ");
     lcd_goto(0x40);
-    delay(debounceVal);
-    delay(debounceVal);
-    delay(debounceVal);
-    delay(debounceVal);
+    delay(1500);
+    delay(1500);
     __bis_SR_register(LPM0_bits + GIE);
+    if(KB==16)KB=0;
     strcpy(merge1, data_matrix[KB]);
     lcd_clear();
     lcd_home();
     lcd_puts("Second index: ");
     lcd_goto(0x40);
-    delay(debounceVal);
-    delay(debounceVal);
-    delay(debounceVal);
-    delay(debounceVal);
+    delay(1500);
+    delay(1500);
     __bis_SR_register(LPM0_bits + GIE);
+    if(KB==16)KB=0;
     strcpy(merge2, data_matrix[KB]);
     lcd_clear();
     lcd_home();
@@ -111,7 +109,7 @@ void Merge() {
             ptr_merge += len1;
 
             if (*ptr1 == ' ') {
-                *ptr_merge = ' ';
+                // *ptr_merge = ' ';
                 ptr1++;
                 ptr_merge++;
             } else {
@@ -141,7 +139,7 @@ void Merge() {
             ptr_merge += len2;
 
             if (*ptr2 == ' ') {
-                *ptr_merge = ' ';
+                // *ptr_merge = ' ';
                 ptr2++;
                 ptr_merge++;
             } else {
@@ -167,6 +165,12 @@ void Merge() {
         lcdptr++;
         if(lcdptr==16){
             lcd_new_line;
+        }
+        else if(lcdptr==32){
+            lcd_home();
+            lcdptr = 0;
+            __bis_SR_register(LPM0_bits + GIE);
+            lcd_clear();
         }
     }
     // lcd_puts(strMerge);
