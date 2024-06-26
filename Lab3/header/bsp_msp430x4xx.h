@@ -10,9 +10,9 @@
 #define   LEDs_SHOW_RATE   0xFFFF  // 62_5ms
 
 // LEDs abstraction
-#define LEDsArrPort        P1OUT
-#define LEDsArrPortDir     P1DIR
-#define LEDsArrPortSel     P1SEL
+#define LEDsArrPort        P9OUT
+#define LEDsArrPortDir     P9DIR
+#define LEDsArrPortSel     P9SEL
 
 // Switches abstraction
 #define SWsArrPort         P2IN

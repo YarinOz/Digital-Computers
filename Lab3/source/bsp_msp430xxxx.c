@@ -10,9 +10,9 @@ void GPIOconfig(void){
   WDTCTL = WDTHOLD | WDTPW;     // Stop WDT
    
   // LEDs 8-bit Array Port configuration
-  // LEDsArrPortSel &= ~0xFF;            // GPIO capability
-  // LEDsArrPortDir |= 0xFF;             // output dir
-  // LEDsArrPort = 0x00;				  // clear all LEDs
+  LEDsArrPortSel &= ~0xFF;            // GPIO capability
+  LEDsArrPortDir |= 0xFF;             // output dir
+  LEDsArrPort = 0x00;				  // clear all LEDs
 
   // LCD configuration
   LCD_DATA_WRITE &= ~0xFF;
@@ -92,12 +92,11 @@ void TIMER0_A0_config(void){
 //       ADC10AE0 |= BIT3;                         // P1.3 ADC option select
 // }
 //-------------------------------------------------------------------------------------
-//            DMA configuration
+//            DMA configuration 
 //-------------------------------------------------------------------------------------
 void DMA_config(void){
-    DMA0DA = (int) &TBCCR0;
-    DMA0CTL = DMAEN + DMASRCINCR_3 + DMASWDW + DMAIE; //repeated-single, source inc, word-word trans, Interupt enable
-    DMACTL0 = DMA0TSEL_1; //TACCR2_IFG trigger
+    DMA0CTL = DMAEN + DMASRCINCR_3 + DMASWDW + DMAIE + DMADT_1; //block-transfer, source inc, word-word trans, Interupt enable
+    DMA1CTL = DMAEN + DMASRCINCR_3 + DMASWDW + DMAIE + DMADT_1; //block-transfer, source inc, word-word trans, Interupt enable
 }
 
 void DMA_config_RT(void){ // For Main Lab

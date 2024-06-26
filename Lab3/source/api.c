@@ -1,6 +1,7 @@
 #include  "../header/api.h"     // private library - API layer
 #include  "../header/halGPIO.h"     // private library - HAL layer
 #include "stdio.h"
+#include <string.h>
 
 // Global Variables
 char strMerge[102];
@@ -32,17 +33,114 @@ void IdiomRecorder(){
 //-------------------------------------------------------------
 //             Merge
 //-------------------------------------------------------------
-void Merge(){
+
+void Merge() {
     char merge1[51], merge2[51];
+    char temp1[51], temp2[51];
+    int len1, len2;
+    char *ptr1, *ptr2, *ptr_merge;
+    char *end1, *end2;
+    char *space_pos;
+
+    lcd_puts("First index: ");
+    lcd_goto(0x40);
+    delay(debounceVal);
+    delay(debounceVal);
+    __bis_SR_register(LPM0_bits + GIE);
+    strcpy(merge1, data_matrix[KB]);
     lcd_clear();
     lcd_home();
-    lcd_puts("Merge: ");
+    lcd_puts("Second index: ");
     lcd_goto(0x40);
-    // hal func to get 2 numbers
-    // maybe need the DMA to do the transfer of the data_matrix to the merge1 and merge2
-    // take 2 numbers and add to merge1=data_matrix[number1] and merge2=data_matrix[number2]
-    // print strMerge to LCD
+    delay(debounceVal);
+    delay(debounceVal);
+    __bis_SR_register(LPM0_bits + GIE);
+    strcpy(merge2, data_matrix[KB]);
+    lcd_clear();
+    lcd_home();
+
+    ptr1 = merge1;
+    ptr2 = merge2;
+    ptr_merge = strMerge;
+    end1 = merge1 + strlen(merge1);
+    end2 = merge2 + strlen(merge2);
+    strMerge[0] = '\0'; // init the string
+
+    while (ptr1 < end1 || ptr2 < end2) {
+        // Find the next word in merge1
+        if (ptr1 < end1) {
+            space_pos = strchr(ptr1, ' ');
+            if (space_pos) {
+                len1 = space_pos - ptr1;
+            } else {
+                len1 = end1 - ptr1;
+            }
+
+            // Use DMA to transfer the word
+            DMA0SA = (unsigned int)ptr1;  // Source address for merge1
+            DMA0DA = (unsigned int)ptr_merge;  // Destination address for strMerge
+            DMA0SZ = len1;  // Block size
+            DMA0CTL = DMAEN + DMASRCINCR_3 + DMADSTINCR_3 + DMADT_1;  // Enable DMA, source and destination increment, block transfer mode
+            DMA0CTL |= DMAREQ;  // Manually trigger DMA transfer for merge1 word
+            while (DMA0CTL & DMAEN);  // Wait for DMA transfer to complete
+
+            ptr1 += len1;
+            ptr_merge += len1;
+
+            if (*ptr1 == ' ') {
+                *ptr_merge = ' ';
+                ptr1++;
+                ptr_merge++;
+            } else {
+                *ptr_merge = ' ';
+                ptr_merge++;
+            }
+        }
+
+        // Find the next word in merge2
+        if (ptr2 < end2) {
+            space_pos = strchr(ptr2, ' ');
+            if (space_pos) {
+                len2 = space_pos - ptr2;
+            } else {
+                len2 = end2 - ptr2;
+            }
+
+            // Use DMA to transfer the word
+            DMA1SA = (unsigned int)ptr2;  // Source address for merge2
+            DMA1DA = (unsigned int)ptr_merge;  // Destination address for strMerge
+            DMA1SZ = len2;  // Block size
+            DMA1CTL = DMAEN + DMASRCINCR_3 + DMADSTINCR_3 + DMADT_1;  // Enable DMA, source and destination increment, block transfer mode
+            DMA1CTL |= DMAREQ;  // Manually trigger DMA transfer for merge2 word
+            while (DMA1CTL & DMAEN);  // Wait for DMA transfer to complete
+
+            ptr2 += len2;
+            ptr_merge += len2;
+
+            if (*ptr2 == ' ') {
+                *ptr_merge = ' ';
+                ptr2++;
+                ptr_merge++;
+            } else {
+                *ptr_merge = ' ';
+                ptr_merge++;
+            }
+        }
+    }
+
+    // Remove trailing space
+    if (ptr_merge > strMerge && *(ptr_merge - 1) == ' ') {
+        *(ptr_merge - 1) = '\0';
+    } else {
+        *ptr_merge = '\0';
+    }
+
+    lcd_clear();
+    lcd_home();
+    lcd_puts(strMerge);
+    __bis_SR_register(LPM0_bits + GIE);
 }
+
 //-------------------------------------------------------------
 //             DMALEDS
 //-------------------------------------------------------------

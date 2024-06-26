@@ -7,6 +7,7 @@ extern char idiom_recorder[33];
 extern unsigned int EndOfRecord;
 extern unsigned int i;
 extern unsigned int KB;
+extern char data_matrix[][51];
 
 extern void startTimerA0();
 extern void IdiomRecorder();
