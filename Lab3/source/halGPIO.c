@@ -387,8 +387,8 @@ void printChar(){
 //            keypad ISR
 //---------------------------------------------------------------------
     if(KeypadIRQIntPend & 0x02){    // if keypad has been pressed find value
-        flag++;
-        startTimerA0();
+//        flag++;
+//        startTimerA0();
         preKB = KB;
         KB = 75;
         KeypadPortOUT = 0x0E;
