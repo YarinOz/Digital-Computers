@@ -4,14 +4,12 @@
 #include <string.h>
 
 // Global Variables
-char strMerge[102];
-char LEDarray[9] = {128, 64, 32, 16, 8, 4, 23, 13, 40};
 
 //-------------------------------------------------------------
 //             Idiom Recorder
 //-------------------------------------------------------------
 void IdiomRecorder(){
-    int len,m;
+    WDTCTL = WDTPW + WDTHOLD; // Stop WDT
     while(state==state1){
         disable_interrupts();  // Disable GIE
         // StopAllTimers();    // Stop All Timers(A,DMA)
@@ -52,13 +50,14 @@ void IdiomRecorder(){
 //-------------------------------------------------------------
 
 void Merge() {
-    char merge1[51], merge2[51];
-    char temp1[51], temp2[51];
-    int len1, len2, sent1len, sent2len;
+    char merge1[38], merge2[38];
+    char strMerge[76];
+    int len1=0, len2=0, sent1len=0, sent2len=0;
     char *ptr1, *ptr2, *ptr_merge, *print;
     char *end1, *end2;
     char *space_pos;
     int lcdptr = 0;
+    WDTCTL = WDTPW + WDTHOLD; // Stop WDT
 
     lcd_home();
     lcd_puts("First index: ");
@@ -98,49 +97,62 @@ void Merge() {
         if (ptr1 < end1) {
             space_pos = strchr(ptr1, ' ');
             if (space_pos) {
-                len1 = space_pos - ptr1 + 1;
-            } else {
+                len1 = space_pos - ptr1;
+            } else { // space not found (last word in the sentence)
                 len1 = end1 - ptr1;
-                if (ptr1 + len1 < end1) {
-                    len1 += 1; // Include space if it's not the last word
-                }
             }
 
             // Use DMA to transfer the word
-            DMA0SA = (unsigned int)ptr1;  // Source address for merge1
-            DMA0DA = (unsigned int)ptr_merge;  // Destination address for strMerge
+            DMA0SA = (void (*)())ptr1;  // Source address for merge1
+            DMA0DA = (void (*)())ptr_merge;  // Destination address for strMerge
             DMA0SZ = len1;  // Block size
-            DMA0CTL = DMAEN + DMASRCINCR_3 + DMADSTINCR_3 + DMADT_1;  // Enable DMA, source and destination increment, block transfer mode
+            DMA0CTL = DMAEN + DMASRCINCR_3 + DMADSTINCR_3 + DMADT_1 + DMASRCBYTE + DMADSTBYTE;  // Enable DMA, source and destination increment, block transfer mode
             DMA0CTL |= DMAREQ;  // Manually trigger DMA transfer for merge1 word
-            while (DMA0CTL & DMAEN);  // Wait for DMA transfer to complete
+            // while (DMA0CTL & DMAEN);  // Wait for DMA transfer to complete
+            delay(1000); // delay for the DMA to finish
 
             ptr1 += len1;
             ptr_merge += len1;
+
+            if (*ptr1 == ' ') {
+                ptr1++;
+                *ptr_merge = ' ';
+                ptr_merge++;
+            } else if (ptr1 < end1 || ptr2 < end2) {
+                *ptr_merge = ' ';
+                ptr_merge++;
+            }
         }
 
         // Find the next word in merge2
         if (ptr2 < end2) {
             space_pos = strchr(ptr2, ' ');
             if (space_pos) {
-                len2 = space_pos - ptr2 + 1;
+                len2 = space_pos - ptr2;
             } else {
                 len2 = end2 - ptr2;
-                if (ptr2 + len2 < end2) {
-                    len2 += 1; // Include space if it's not the last word
-                }
             }
 
             // Use DMA to transfer the word
-            DMA1SA = (unsigned int)ptr2;  // Source address for merge2
-            DMA1DA = (unsigned int)ptr_merge;  // Destination address for strMerge
+            DMA1SA = (void (*)())ptr2;  // Source address for merge2
+            DMA1DA = (void (*)())ptr_merge;  // Destination address for strMerge
             DMA1SZ = len2;  // Block size
-            DMA1CTL = DMAEN + DMASRCINCR_3 + DMADSTINCR_3 + DMADT_1;  // Enable DMA, source and destination increment, block transfer mode
+            DMA1CTL = DMAEN + DMASRCINCR_3 + DMADSTINCR_3 + DMADT_1 + DMASRCBYTE + DMADSTBYTE;  // Enable DMA, source and destination increment, block transfer mode
             DMA1CTL |= DMAREQ;  // Manually trigger DMA transfer for merge2 word
-            while (DMA1CTL & DMAEN);  // Wait for DMA transfer to complete
+            // while (DMA1CTL & DMAEN);  // Wait for DMA transfer to complete
+            delay(1000); // delay for the DMA to finish
 
             ptr2 += len2;
             ptr_merge += len2;
 
+            if (*ptr2 == ' ') {
+                ptr2++;
+                *ptr_merge = ' ';
+                ptr_merge++;
+            } else if (ptr1 < end1 || ptr2 < end2) {
+                *ptr_merge = ' ';
+                ptr_merge++;
+            }
         }
     }
 
@@ -168,7 +180,6 @@ void Merge() {
             lcd_clear();
         }
     }
-    // lcd_puts(strMerge);
     __bis_SR_register(LPM0_bits + GIE);
 }
 
@@ -176,9 +187,28 @@ void Merge() {
 //             DMALEDS
 //-------------------------------------------------------------
 void DMALEDS(){
+    char LEDarray[9] = {128, 64, 32, 16, 8, 4, 23, 13, 40};
+    WDTCTL = WDTPW + WDTHOLD; // Stop WDT
     lcd_clear();
+    lcd_home();
+    DMACTL0 = DMA0TSEL_1;  // TimerA0 trigger for DMA0
+    DMA0SA = (void (*)())LEDarray;  // Source address for LEDarray
+    DMA0DA = (void (*)())&LEDsArrPort ;  // Destination address for LEDsArrPort
+    DMA1SZ = 0x020;  // Block size
+    DMA0CTL = DMAEN + DMASRCINCR_3 + DMADT_1 + DMASBDB;  // Enable DMA, source and destination increment, block transfer mode
+    __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0
     // print to leds the LEDarray periodically from left to right with 0.5sec delay using TimerB trigger
 
+}
+//-------------------------------------------------------------
+//             count string length
+//-------------------------------------------------------------
+int strlength(char *str){
+    int u = 0;
+    while(str[u] != '\0'){
+        u++;
+    }
+    return u;
 }
 //-------------------------------------------------------------
 //              StartTimer For StopWatch

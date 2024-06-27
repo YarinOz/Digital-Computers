@@ -3,12 +3,12 @@
 
 enum FSMstate state;
 enum SYSmode lpm_mode;
-char data_matrix[][51]={
+char data_matrix[][38]={
   "An apple a day keeps the doctor away", "climb on the bandwagon",
   "Dot the i's and cross the t's",
   "He who pays the piper calls the tune", "The pen is mightier than the sword", "The pot calling the kettle black",
   "shed crocodile tears", "Close but no cigar",
-  "Cut from the same cloth", "Strike while the iron’s hot"
+  "Cut from the same cloth", "Strike while the iron's hot"
 };
 char idiom_recorder[33]; // 32 + '\0'
 unsigned int EndOfRecord = 0;
@@ -17,7 +17,6 @@ unsigned int KB;
 
 void main(void){
   
-  int len,m;
   state = state0;  // start in idle state on RESET
   lpm_mode = mode0;     // start in idle state on RESET
   sysConfig();
