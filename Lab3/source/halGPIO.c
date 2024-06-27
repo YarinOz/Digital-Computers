@@ -236,7 +236,10 @@ void __attribute__ ((interrupt(TIMER0_A0_VECTOR))) Timer_A (void)
 //*********************************************************************
 #pragma vector=TIMERB0_VECTOR
 __interrupt void TimerB_ISR(void) {
-    ledptr+=sizeof(int);
+    DMA0CTL &= ~DMAIFG;              // Clear DMA0 interrupt flag
+    // TB0CCTL0 &= ~CCIE;
+    // TB0CCTL0 &= ~CCIFG; // Clear the interrupt flag
+    ledptr++;
     LPM0_EXIT;
 }
 
@@ -424,3 +427,13 @@ __interrupt void DMA_ISR (void){
           }
       }
   }
+//*********************************************************************
+//             Start TimerB
+//*********************************************************************
+void startTimerB(void){
+    WDTCTL = WDTPW + WDTHOLD; // Stop WDT
+    TB0CCTL0 = CCIE; // CCR0 interrupt enabled
+    TB0CCR0 = 0xFFFF; // 
+    TB0CTL = TBSSEL_2 + MC_2 + ID_3 + TBCLR; // ACLK, upmode, clear TAR
+    __bis_SR_register(GIE); // Enter LPM0
+}

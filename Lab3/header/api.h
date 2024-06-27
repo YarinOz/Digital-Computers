@@ -12,6 +12,7 @@ extern int LEDarray[9];
 extern int *ledptr;
 
 extern void startTimerA0();
+extern void startTimerB();
 extern void IdiomRecorder();
 extern void Merge();
 extern void DMALEDS();

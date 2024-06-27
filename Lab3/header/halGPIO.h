@@ -25,6 +25,7 @@ extern void disable_interrupts();
 extern void freq_template_LCD();
 extern unsigned char readSWs(void);
 extern void printChar();
+extern void startTimerB();
 
 extern __interrupt void PBs_handler(void);
 extern __interrupt void keypadIRQ(void);

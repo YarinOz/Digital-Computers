@@ -192,17 +192,16 @@ void DMALEDS(){
     lcd_home();
     ledptr = LEDarray;
     while(state==state3){
-        disable_interrupts();
+        // disable_interrupts();
         DMACTL0 = DMA0TSEL_2;  // TimerB0 trigger for DMA0
-        DMA0SA = (void (*)())(ledptr);  // Source address for LEDarray
+        DMA0SA = (void (*)())ledptr;  // Source address for LEDarray
         DMA0DA = (void (*)())&LEDsArrPort ;  // Destination address for LEDsArrPort
         DMA0SZ = 1;  // Block size
-        DMA0CTL = DMAEN + DMASRCINCR_3 + DMADT_1 + DMASBDB + DMAIE;  // Enable DMA, source and destination increment, block transfer mode
-        
-        TB0CCTL0 = CCIE;  // Enable capture/compare interrupt
+        DMA0CTL = DMAEN + DMASRCINCR_3 + DMADSTINCR_0 + DMADT_1 + DMASBDB + DMAIE;  // Enable DMA, source increment, block transfer mode
+        startTimerB();            
         __bis_SR_register(LPM0_bits + GIE);  // Enter low power mode 0
 
-        enable_interrupts();
+        // enable_interrupts();
     }
     TBCTL = MC_0+TBCLR;  // Stop TimerB0
 }
