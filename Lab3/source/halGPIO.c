@@ -4,6 +4,7 @@
 // Global Variables
 extern unsigned int preKB=0;
 extern unsigned int flag=0;
+extern unsigned int ledIndex = 0;
 
 //--------------------------------------------------------------------
 //             System Configuration  
@@ -11,6 +12,7 @@ extern unsigned int flag=0;
 void sysConfig(void){ 
     GPIOconfig();
     TIMER0_A0_config();
+    TIMERB_config();    
 }
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
@@ -229,6 +231,15 @@ void __attribute__ ((interrupt(TIMER0_A0_VECTOR))) Timer_A (void)
     LPM0_EXIT;
     TACTL = MC_0+TACLR;
 }
+//*********************************************************************
+//            TimerB0 Interrupt Service Routine
+//*********************************************************************
+#pragma vector=TIMERB0_VECTOR
+__interrupt void TimerB_ISR(void) {
+    DMA0CTL |= DMAREQ;  // Trigger DMA transfer
+    LPM0_EXIT;
+}
+
 //*********************************************************************
 //            DMA ISR
 //*********************************************************************

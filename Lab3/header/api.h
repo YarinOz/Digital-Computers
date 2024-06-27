@@ -8,6 +8,7 @@ extern unsigned int EndOfRecord;
 extern unsigned int i;
 extern unsigned int KB;
 extern char data_matrix[][38];
+extern const int LEDarray[9];
 
 extern void startTimerA0();
 extern void IdiomRecorder();

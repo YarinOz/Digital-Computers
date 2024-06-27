@@ -4,7 +4,7 @@
 #include <string.h>
 
 // Global Variables
-
+const int LEDarray[9] = {128, 64, 32, 16, 8, 4, 23, 13, 40};
 //-------------------------------------------------------------
 //             Idiom Recorder
 //-------------------------------------------------------------
@@ -187,18 +187,22 @@ void Merge() {
 //             DMALEDS
 //-------------------------------------------------------------
 void DMALEDS(){
-    char LEDarray[9] = {128, 64, 32, 16, 8, 4, 23, 13, 40};
     WDTCTL = WDTPW + WDTHOLD; // Stop WDT
     lcd_clear();
     lcd_home();
-    DMACTL0 = DMA0TSEL_1;  // TimerA0 trigger for DMA0
+    DMACTL0 = DMA0TSEL_2;  // TimerB0 trigger for DMA0
     DMA0SA = (void (*)())LEDarray;  // Source address for LEDarray
     DMA0DA = (void (*)())&LEDsArrPort ;  // Destination address for LEDsArrPort
     DMA1SZ = 0x020;  // Block size
     DMA0CTL = DMAEN + DMASRCINCR_3 + DMADT_1 + DMASBDB;  // Enable DMA, source and destination increment, block transfer mode
-    __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0
-    // print to leds the LEDarray periodically from left to right with 0.5sec delay using TimerB trigger
-
+    while(1){
+        // DMA0CTL |= DMAREQ;  // Manually trigger DMA transfer
+        // while(DMA0CTL & DMAEN);  // Wait for DMA transfer to complete
+        LEDsArrPort = LEDarray[i++];
+        delay(0xFFFFF); // delay for the DMA to finish
+    }
+    // TB0CCTL0 = CCIE;  // Enable capture/compare interrupt
+    // __bis_SR_register(LPM0_bits + GIE);  // Enter low power mode 0
 }
 //-------------------------------------------------------------
 //             count string length
@@ -214,6 +218,7 @@ int strlength(char *str){
 //              StartTimer For StopWatch
 //-------------------------------------------------------------
 void startTimerA0(){
+    TA0CCTL0 = CCIE;  // CCR0 interrupt enabled
     TACCR0 = 0xFFFF;  // Timer Cycles - max
     TA0CTL = TASSEL_2 + MC_3 + ID_3;  //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
     // ACLK doesn't work on our msp, so we have to use smclk and divide the freq to get to 1 sec.

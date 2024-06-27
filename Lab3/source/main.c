@@ -38,7 +38,9 @@ void main(void){
 
       case state2: //PB1
         lcd_clear();          // Clear LCD screen
+        disable_interrupts(); // Disable to Cut the state
         Merge();          // 
+        enable_interrupts();  // Enable to Cut the state
         break;
 
       case state3: ; //PB2

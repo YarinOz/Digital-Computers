@@ -12,6 +12,7 @@ extern enum FSMstate state;   // global variable
 extern enum SYSmode lpm_mode; // global variable
 extern char idiom_recorder[33];
 extern unsigned int EndOfRecord, i, KB;
+extern const int LEDarray[9];
 
 extern void sysConfig(void);
 extern void SetByteToPort(char); // Added By RK
