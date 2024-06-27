@@ -236,7 +236,7 @@ void __attribute__ ((interrupt(TIMER0_A0_VECTOR))) Timer_A (void)
 //*********************************************************************
 #pragma vector=TIMERB0_VECTOR
 __interrupt void TimerB_ISR(void) {
-    DMA0CTL |= DMAREQ;  // Trigger DMA transfer
+    ledptr+=sizeof(int);
     LPM0_EXIT;
 }
 

@@ -3,8 +3,8 @@
 #include "stdio.h"
 #include <string.h>
 
-// Global Variables
-const int LEDarray[9] = {128, 64, 32, 16, 8, 4, 23, 13, 40};
+int LEDarray[9] = {128, 64, 32, 16, 8, 4, 23, 13, 40};
+int *ledptr;
 //-------------------------------------------------------------
 //             Idiom Recorder
 //-------------------------------------------------------------
@@ -190,19 +190,21 @@ void DMALEDS(){
     WDTCTL = WDTPW + WDTHOLD; // Stop WDT
     lcd_clear();
     lcd_home();
-    DMACTL0 = DMA0TSEL_2;  // TimerB0 trigger for DMA0
-    DMA0SA = (void (*)())LEDarray;  // Source address for LEDarray
-    DMA0DA = (void (*)())&LEDsArrPort ;  // Destination address for LEDsArrPort
-    DMA1SZ = 0x020;  // Block size
-    DMA0CTL = DMAEN + DMASRCINCR_3 + DMADT_1 + DMASBDB;  // Enable DMA, source and destination increment, block transfer mode
-    while(1){
-        // DMA0CTL |= DMAREQ;  // Manually trigger DMA transfer
-        // while(DMA0CTL & DMAEN);  // Wait for DMA transfer to complete
-        LEDsArrPort = LEDarray[i++];
-        delay(0xFFFFF); // delay for the DMA to finish
+    ledptr = LEDarray;
+    while(state==state3){
+        disable_interrupts();
+        DMACTL0 = DMA0TSEL_2;  // TimerB0 trigger for DMA0
+        DMA0SA = (void (*)())(ledptr);  // Source address for LEDarray
+        DMA0DA = (void (*)())&LEDsArrPort ;  // Destination address for LEDsArrPort
+        DMA0SZ = 1;  // Block size
+        DMA0CTL = DMAEN + DMASRCINCR_3 + DMADT_1 + DMASBDB + DMAIE;  // Enable DMA, source and destination increment, block transfer mode
+        
+        TB0CCTL0 = CCIE;  // Enable capture/compare interrupt
+        __bis_SR_register(LPM0_bits + GIE);  // Enter low power mode 0
+
+        enable_interrupts();
     }
-    // TB0CCTL0 = CCIE;  // Enable capture/compare interrupt
-    // __bis_SR_register(LPM0_bits + GIE);  // Enter low power mode 0
+    TBCTL = MC_0+TBCLR;  // Stop TimerB0
 }
 //-------------------------------------------------------------
 //             count string length
