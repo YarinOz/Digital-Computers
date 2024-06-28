@@ -133,22 +133,6 @@ void lcd_puts(const char * s){
         lcd_data(*s++);
 }
 //******************************************************************
-//    write frequency template to LCD
-//******************************************************************
-void freq_template_LCD(){
-   lcd_clear();
-   lcd_home();
-    const char SquareWaveFreq[] = "fin=";
-    const char Hz[] = "Hz";
-     lcd_puts(SquareWaveFreq);
-     lcd_cursor_right();
-     lcd_cursor_right();
-     lcd_cursor_right();
-     lcd_cursor_right();
-     lcd_cursor_right();
-     lcd_puts(Hz);
-}
-//******************************************************************
 // initialize the LCD
 //******************************************************************
 void lcd_init(){
@@ -236,22 +220,21 @@ void __attribute__ ((interrupt(TIMER0_A0_VECTOR))) Timer_A (void)
 //*********************************************************************
 #pragma vector=TIMERB0_VECTOR
 __interrupt void TimerB_ISR(void) {
-    DMA0CTL &= ~DMAIFG;              // Clear DMA0 interrupt flag
-    // TB0CCTL0 &= ~CCIE;
-    // TB0CCTL0 &= ~CCIFG; // Clear the interrupt flag
+    TB0CCTL0 &= ~CCIFG; // Clear the interrupt flag
     ledptr++;
     if(*ledptr == 0){
         ledptr = LEDarray;
     }
     LPM0_EXIT;
 }
-
 //*********************************************************************
-//            DMA ISR
+//            DMA Interrupt Service Routine
 //*********************************************************************
 #pragma vector = DMA_VECTOR
-__interrupt void DMA_ISR (void){
-    StopAllTimers();
+__interrupt void DMA_ISR(void)
+{
+  DMA0CTL &= ~DMAIFG;                       // Clear DMA0 interrupt flag
+  __bic_SR_register_on_exit(LPM0_bits);     // Exit LPMx, interrupts enabled
 }
 //*********************************************************************
 //            Port1 Interrupt Service Routine
@@ -435,18 +418,27 @@ __interrupt void DMA_ISR (void){
 //             Start TimerB
 //*********************************************************************
 void startTimerB(void){
-    WDTCTL = WDTPW + WDTHOLD; // Stop WDT
     TB0CCTL0 = CCIE; // CCR0 interrupt enabled
     TB0CCR2 = 0xFFFF; // 
     TB0CTL = TBSSEL_2 + MC_2 + ID_3 + TBCLR; // ACLK, upmode, clear TAR
     __bis_SR_register(GIE); // Enter LPM0
 }
+//-------------------------------------------------------------
+//              StartTimer For StopWatch
+//-------------------------------------------------------------
+void startTimerA0(){
+    TA0CCTL0 = CCIE;  // CCR0 interrupt enabled
+    TACCR0 = 0xFFFF;  // Timer Cycles - max
+    TA0CTL = TASSEL_2 + MC_3 + ID_3;  //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
+    // ACLK doesn't work on our msp, so we have to use smclk and divide the freq to get to 1 sec.
+    __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
+}
 //-------------------------------------------------------------------------------------
 //            Stop All Timers
 //-------------------------------------------------------------------------------------
 void StopAllTimers(void){
-    TACTL = MC_0; // halt timer A
-    TBCTL = MC_0; // halt timer B
-    DMA0CTL = 0; // Stop DMA0
-    DMA1CTL = 0; // Stop DMA1
+    TACTL = MC_0 + TACLR; // halt timer A
+    TBCTL = MC_0 + TBCLR; // halt timer B
+    DMA0CTL &= ~DMAEN; // Stop DMA0
+    DMA1CTL &= ~DMAEN; // Stop DMA1
 }

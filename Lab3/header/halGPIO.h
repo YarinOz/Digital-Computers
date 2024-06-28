@@ -22,10 +22,10 @@ extern void delay(unsigned int);
 extern void enterLPM(unsigned char);
 extern void enable_interrupts();
 extern void disable_interrupts();
-extern void freq_template_LCD();
 extern unsigned char readSWs(void);
 extern void printChar();
 extern void startTimerB();
+extern void startTimerA0();
 extern void StopAllTimers();
 
 extern __interrupt void PBs_handler(void);

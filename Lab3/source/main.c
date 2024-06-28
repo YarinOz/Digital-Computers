@@ -33,22 +33,25 @@ void main(void){
           break;
 
       case state1: //PB0
-        enable_interrupts();  // Enable to Cut the state
-        lcd_home();
         lcd_clear();
+        lcd_home(); 
+        enable_interrupts();  // Enable to Cut the state
         IdiomRecorder();  // 
         break;
 
       case state2: //PB1
         lcd_clear();          // Clear LCD screen
+        lcd_home();
         disable_interrupts(); // Disable to Cut the state
+        StopAllTimers();      // Stop All Timers(A,DMA)
         Merge();          // 
         enable_interrupts();  // Enable to Cut the state
         break;
 
       case state3: ; //PB2
-        enable_interrupts();  // Enable to Cut the state
         lcd_clear();          // Clear LCD screen
+        lcd_home();
+        enable_interrupts();  // Enable to Cut the state
         DMALEDS();
         break;
                 
