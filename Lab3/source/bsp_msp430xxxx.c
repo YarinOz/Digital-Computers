@@ -47,13 +47,13 @@ void GPIOconfig(void){
 //   SWsArrIntPend &= ~0xFF;           // clear pending interrupts P2.0-2
 
   // PushButtons Setup
-  PBsArrPortSel &= ~0x07;           //
-  PBsArrPortOut &= ~0x07;            // Set P1Out to '0'
-  PBsArrPortDir &= ~0x07;            // P1.0-2 - Input ('0')
-  PBsArrPortDir |= 0x08;             // P1.3 - Output ('1')
+  PBsArrPortSel &= ~0x0F;           //
+  PBsArrPortOut &= ~0x0F;            // Set P1Out to '0'
+  PBsArrPortDir &= ~0x0F;            // P1.0-2 - Input ('0')
+  PBsArrPortDir |= 0x00;             // P1.3 - Output ('1')
   PBsArrIntEdgeSel |= 0x03;          // pull-up mode   P1.0-P1.1 - '1'
   PBsArrIntEdgeSel &= ~0x0C;         // pull-down mode  P1.2 - '0'
-  PBsArrIntEn |= 0x07;               // P1.0-2 - '1'
+  PBsArrIntEn |= 0x0F;               // P1.0-3 - '1'
   PBsArrIntPend &= ~0xFF;            // clear pending interrupts P1.0-P1.3 all P1
 
   _BIS_SR(GIE);                     // enable interrupts globally

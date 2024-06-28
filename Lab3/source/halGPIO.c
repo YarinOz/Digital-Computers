@@ -259,6 +259,10 @@ __interrupt void DMA_ISR(void)
       state = state3;
       PBsArrIntPend &= ~PB2;
         }
+    else if(PBsArrIntPend & PB3){
+        state = state4;
+        PBsArrIntPend &= ~PB3;
+            }
 //---------------------------------------------------------------------
 //            Exit from a given LPM 
 //---------------------------------------------------------------------

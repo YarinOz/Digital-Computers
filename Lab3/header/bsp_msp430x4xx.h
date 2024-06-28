@@ -65,7 +65,7 @@
 #define PB0                0x01   // P1.0
 #define PB1                0x02  // P1.1
 #define PB2                0x04  // P1.2
-#define PB3                0x10   // P2.0
+#define PB3                0x08   // P2.0
 
 
 extern void GPIOconfig(void);
