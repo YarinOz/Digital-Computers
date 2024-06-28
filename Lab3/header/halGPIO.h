@@ -27,6 +27,9 @@ extern void printChar();
 extern void startTimerB();
 extern void startTimerA0();
 extern void StopAllTimers();
+extern void DMA0_STATE2(int *ptr1, int len1, int *ptr_merge);
+extern void DMA1_STATE2(int *ptr2, int len2, int *ptr_merge);
+extern void DMA0_STATE3();
 
 extern __interrupt void PBs_handler(void);
 extern __interrupt void keypadIRQ(void);

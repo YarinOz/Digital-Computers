@@ -105,14 +105,7 @@ void Merge() {
                 } else { // space not found (last word in the sentence)
                     len1 = end1 - ptr1;
                 }
-
-                // Use DMA to transfer the word
-                DMA0SA = (void (*)())ptr1;  // Source address for merge1
-                DMA0DA = (void (*)())ptr_merge;  // Destination address for strMerge
-                DMA0SZ = len1;  // Block size
-                DMA0CTL = DMAEN + DMASRCINCR_3 + DMADSTINCR_3 + DMADT_1 + DMASRCBYTE + DMADSTBYTE;  // Enable DMA, source and destination increment, block transfer mode
-                DMA0CTL |= DMAREQ;  // Manually trigger DMA transfer for merge1 word
-                while (DMA0CTL & DMAEN);  // Wait for DMA transfer to complete
+                DMA0_STATE2(ptr1, len1, ptr_merge);  // Use DMA to transfer the word
 
                 ptr1 += len1;
                 ptr_merge += len1;
@@ -135,14 +128,7 @@ void Merge() {
                 } else {
                     len2 = end2 - ptr2;
                 }
-
-                // Use DMA to transfer the word
-                DMA1SA = (void (*)())ptr2;  // Source address for merge2
-                DMA1DA = (void (*)())ptr_merge;  // Destination address for strMerge
-                DMA1SZ = len2;  // Block size
-                DMA1CTL = DMAEN + DMASRCINCR_3 + DMADSTINCR_3 + DMADT_1 + DMASRCBYTE + DMADSTBYTE;  // Enable DMA, source and destination increment, block transfer mode
-                DMA1CTL |= DMAREQ;  // Manually trigger DMA transfer for merge2 word
-                while (DMA1CTL & DMAEN);  // Wait for DMA transfer to complete
+                DMA1_STATE2(ptr2, len2, ptr_merge);  // Use DMA to transfer the word
 
                 ptr2 += len2;
                 ptr_merge += len2;
@@ -193,11 +179,7 @@ void DMALEDS(){
     // StopAllTimers();    
     ledptr = LEDarray;
     while(state==state3){
-        DMACTL0 = DMA0TSEL_2;  // TimerB0 trigger for DMA0
-        DMA0SA = (void (*)())ledptr;  // Source address for LEDarray
-        DMA0DA = (void (*)())&LEDsArrPort ;  // Destination address for LEDsArrPort
-        DMA0SZ = 1;  // Block size
-        DMA0CTL = DMAEN + DMASRCINCR_3 + DMADSTINCR_0 + DMADT_1 + DMASBDB + DMAIE;  // Enable DMA, source increment, block transfer mode
+        DMA0_STATE3();
         startTimerB();            
         __bis_SR_register(LPM0_bits + GIE);  // Enter low power mode 0
     }
