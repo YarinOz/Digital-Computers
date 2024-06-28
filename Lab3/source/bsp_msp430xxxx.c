@@ -74,7 +74,7 @@ void TIMER0_A0_config(void){
 //-------------------------------------------------------------------------------------
 void TIMERB_config(void){
     WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
-    TB0CCR0 = 0xFFFF;  // Assuming SMCLK frequency is 1 MHz, 25000 cycles = 25ms period
+    TB0CCR2 = 0xFFFF;  // Assuming SMCLK frequency is 1 MHz, 25000 cycles = 25ms period
     TB0CTL = TBSSEL_2 + MC_3 + ID_3; //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
     __bis_SR_register(GIE);       //interrupt
 }
@@ -97,13 +97,4 @@ void DMA_config(void){
 void DMA_config_RT(void){ // For Main Lab
 
 }
-//-------------------------------------------------------------------------------------
-//            Stop All Timers
-//-------------------------------------------------------------------------------------
-void StopAllTimers(void){
 
-    TACTL = MC_0; // halt timer A
-    TBCTL = MC_0; // halt timer B
-    TBCCTL1 = 0x00; // stop PWM
-    DMA0CTL = 0; // Stop DMA0
-}

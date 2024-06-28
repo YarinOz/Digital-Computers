@@ -240,6 +240,9 @@ __interrupt void TimerB_ISR(void) {
     // TB0CCTL0 &= ~CCIE;
     // TB0CCTL0 &= ~CCIFG; // Clear the interrupt flag
     ledptr++;
+    if(*ledptr == 0){
+        ledptr = LEDarray;
+    }
     LPM0_EXIT;
 }
 
@@ -257,6 +260,7 @@ __interrupt void DMA_ISR (void){
   __interrupt void PBs_handler(void){
    
     delay(debounceVal);
+    delay(15000); // For keypad debounce
 //---------------------------------------------------------------------
 //            selector of transition between states
 //---------------------------------------------------------------------
@@ -433,7 +437,16 @@ __interrupt void DMA_ISR (void){
 void startTimerB(void){
     WDTCTL = WDTPW + WDTHOLD; // Stop WDT
     TB0CCTL0 = CCIE; // CCR0 interrupt enabled
-    TB0CCR0 = 0xFFFF; // 
+    TB0CCR2 = 0xFFFF; // 
     TB0CTL = TBSSEL_2 + MC_2 + ID_3 + TBCLR; // ACLK, upmode, clear TAR
     __bis_SR_register(GIE); // Enter LPM0
+}
+//-------------------------------------------------------------------------------------
+//            Stop All Timers
+//-------------------------------------------------------------------------------------
+void StopAllTimers(void){
+    TACTL = MC_0; // halt timer A
+    TBCTL = MC_0; // halt timer B
+    DMA0CTL = 0; // Stop DMA0
+    DMA1CTL = 0; // Stop DMA1
 }

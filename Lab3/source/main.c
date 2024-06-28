@@ -22,6 +22,7 @@ void main(void){
   sysConfig();
   lcd_init();
   lcd_clear();
+  LEDsArrPort &= ~0xFF;  // Turn off all LEDs
 
   while(1){
     switch(state){
@@ -33,6 +34,8 @@ void main(void){
 
       case state1: //PB0
         enable_interrupts();  // Enable to Cut the state
+        lcd_home();
+        lcd_clear();
         IdiomRecorder();  // 
         break;
 

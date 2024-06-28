@@ -3,13 +3,14 @@
 #include "stdio.h"
 #include <string.h>
 
-int LEDarray[9] = {128, 64, 32, 16, 8, 4, 23, 13, 40};
+int LEDarray[10] = {128, 64, 32, 16, 8, 4, 23, 13, 40, 0};
 int *ledptr;
 //-------------------------------------------------------------
 //             Idiom Recorder
 //-------------------------------------------------------------
 void IdiomRecorder(){
     WDTCTL = WDTPW + WDTHOLD; // Stop WDT
+    StopAllTimers();
     while(state==state1){
         disable_interrupts();  // Disable GIE
         // StopAllTimers();    // Stop All Timers(A,DMA)
@@ -58,6 +59,7 @@ void Merge() {
     char *space_pos;
     int lcdptr = 0;
     WDTCTL = WDTPW + WDTHOLD; // Stop WDT
+    StopAllTimers();
 
     lcd_home();
     lcd_puts("First index: ");
@@ -108,8 +110,7 @@ void Merge() {
             DMA0SZ = len1;  // Block size
             DMA0CTL = DMAEN + DMASRCINCR_3 + DMADSTINCR_3 + DMADT_1 + DMASRCBYTE + DMADSTBYTE;  // Enable DMA, source and destination increment, block transfer mode
             DMA0CTL |= DMAREQ;  // Manually trigger DMA transfer for merge1 word
-            // while (DMA0CTL & DMAEN);  // Wait for DMA transfer to complete
-            delay(1000); // delay for the DMA to finish
+            while (DMA0CTL & DMAEN);  // Wait for DMA transfer to complete
 
             ptr1 += len1;
             ptr_merge += len1;
@@ -139,8 +140,7 @@ void Merge() {
             DMA1SZ = len2;  // Block size
             DMA1CTL = DMAEN + DMASRCINCR_3 + DMADSTINCR_3 + DMADT_1 + DMASRCBYTE + DMADSTBYTE;  // Enable DMA, source and destination increment, block transfer mode
             DMA1CTL |= DMAREQ;  // Manually trigger DMA transfer for merge2 word
-            // while (DMA1CTL & DMAEN);  // Wait for DMA transfer to complete
-            delay(1000); // delay for the DMA to finish
+            while (DMA1CTL & DMAEN);  // Wait for DMA transfer to complete
 
             ptr2 += len2;
             ptr_merge += len2;
@@ -180,7 +180,7 @@ void Merge() {
             lcd_clear();
         }
     }
-    __bis_SR_register(LPM0_bits + GIE);
+    __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
 }
 
 //-------------------------------------------------------------
@@ -188,6 +188,7 @@ void Merge() {
 //-------------------------------------------------------------
 void DMALEDS(){
     WDTCTL = WDTPW + WDTHOLD; // Stop WDT
+    // StopAllTimers();    
     lcd_clear();
     lcd_home();
     ledptr = LEDarray;
@@ -203,6 +204,9 @@ void DMALEDS(){
 
         // enable_interrupts();
     }
+    LEDsArrPort &= ~0xFF;  // Turn off all LEDs
+    TB0CCTL0 &= ~CCIE;  // Disable TimerB0 interrupt
+    DMA0CTL &= ~DMAEN;  // Disable DMA0
     TBCTL = MC_0+TBCLR;  // Stop TimerB0
 }
 //-------------------------------------------------------------

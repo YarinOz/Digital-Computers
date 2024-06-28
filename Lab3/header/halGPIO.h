@@ -12,7 +12,7 @@ extern enum FSMstate state;   // global variable
 extern enum SYSmode lpm_mode; // global variable
 extern char idiom_recorder[33];
 extern unsigned int EndOfRecord, i, KB;
-extern int LEDarray[9];
+extern int LEDarray[10];
 extern int *ledptr;
 
 extern void sysConfig(void);
@@ -26,6 +26,7 @@ extern void freq_template_LCD();
 extern unsigned char readSWs(void);
 extern void printChar();
 extern void startTimerB();
+extern void StopAllTimers();
 
 extern __interrupt void PBs_handler(void);
 extern __interrupt void keypadIRQ(void);
