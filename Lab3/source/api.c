@@ -208,8 +208,11 @@ void Mirror(){
         len = strlen(strBM);  // Get the length of the string
         while(len >= 0){
             DMA0_STATE2(ptrOriginal, 1, ptr_mirror);
+            ptrOriginal--;
             len--; 
+            ptr_mirror++;
         }
+        DMA0_STATE2(strBM+157, 1, ptr_mirror);  // Add '\0'
         // printing function
         printmirror = strMirror;
         for(l=0;l<32;l++){
