@@ -8,6 +8,7 @@ extern unsigned int EndOfRecord;
 extern unsigned int i;
 extern unsigned int KB;
 extern char data_matrix[][38];
+extern char strBM[];
 extern int LEDarray[10];
 extern int *ledptr;
 
@@ -16,6 +17,7 @@ extern void startTimerB();
 extern void IdiomRecorder();
 extern void Merge();
 extern void DMALEDS();
+extern void Mirror();
 extern int strlength(char *str);
 extern void StopAllTimers();
 extern void DMA0_STATE2(int *ptr1, int len1, int *ptr_merge);

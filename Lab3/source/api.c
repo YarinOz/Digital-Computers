@@ -190,6 +190,42 @@ void DMALEDS(){
     __bis_SR_register(GIE);  // Exit low power mode 0
 }
 //-------------------------------------------------------------
+//             Mirror
+//-------------------------------------------------------------
+void Mirror(){
+    int len, l;
+    char strMirror[160];
+    char *ptrOriginal, *ptr_mirror, *printmirror;
+    WDTCTL = WDTPW + WDTHOLD; // Stop WDT
+    StopAllTimers();
+    ptrOriginal = strBM + 156;
+    ptr_mirror = strMirror;
+    DMACTL0 = DMA0TSEL_0;  // No trigger source (manual transfer)
+    while(state==state4){
+        disable_interrupts();  // Disable GIE
+        lcd_clear();
+        lcd_home();
+        len = strlen(strBM);  // Get the length of the string
+        while(len >= 0){
+            DMA0_STATE2(ptrOriginal, 1, ptr_mirror);
+            ptrOriginal--;
+            len--; 
+            ptr_mirror++;
+        }
+        DMA0_STATE2(strBM+157, 1, ptr_mirror);  // Add '\0'
+        // printing function
+        printmirror = strMirror;
+        for(l=0;l<32;l++){
+            lcd_data(*printmirror);
+            printmirror++;
+            if(l==15){
+                lcd_new_line;
+            }
+        }
+        __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
+    }
+}
+//-------------------------------------------------------------
 //             count string length
 //-------------------------------------------------------------
 int strlength(char *str){

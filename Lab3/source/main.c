@@ -10,6 +10,7 @@ char data_matrix[][38]={
   "shed crocodile tears", "Close but no cigar",
   "Cut from the same cloth", "Strike while the iron's hot"
 };
+char strBM[]="Google Colaboratory is a free Jupyter notebook environment that runs on Google's cloud servers, letting the user leverage backend hardware like GPUs and TPUs";
 char idiom_recorder[33]; // 32 + '\0'
 unsigned int EndOfRecord = 0;
 unsigned int i = 0;
@@ -56,10 +57,12 @@ void main(void){
         break;
                 
       case state4: //PB3 RT
-        enable_interrupts();  // Enable to Cut the state
         lcd_clear();          // Clear LCD screen
-        // RTLAB();
+        lcd_home();
+        enable_interrupts();  // Enable to Cut the state
+        Mirror();          //
         break;
+
     }
   }
 }
