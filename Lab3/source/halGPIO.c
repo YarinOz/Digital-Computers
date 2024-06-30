@@ -474,3 +474,12 @@ void DMA0_STATE3(){
     DMA0SZ = 1;  // Block size
     DMA0CTL = DMAEN + DMASRCINCR_3 + DMADSTINCR_0 + DMADT_1 + DMASBDB + DMAIE;  // Enable DMA, source increment, block transfer mode
 }
+void DMA0_STATE4(int *ptr1, int len1, int *ptr_merge){
+     // Use DMA to transfer the word
+    DMA0SA = (void (*)())ptr1;  // Source address for merge1
+    DMA0DA = (void (*)())ptr_merge;  // Destination address for strMerge
+    DMA0SZ = len1;  // Block size
+    DMA0CTL = DMAEN + DMASRCINCR_2 + DMADSTINCR_3 + DMADT_1 + DMASRCBYTE + DMADSTBYTE;  // Enable DMA, source and destination increment, block transfer mode
+    DMA0CTL |= DMAREQ;  // Manually trigger DMA transfer for merge1 word
+    while (DMA0CTL & DMAEN);  // Wait for DMA transfer to complete
+}
