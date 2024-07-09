@@ -8,11 +8,6 @@
 //-----------------------------------------------------------------------------
 void GPIOconfig(void){
   WDTCTL = WDTHOLD | WDTPW;     // Stop WDT
-   
-  // LEDs 8-bit Array Port configuration
-  LEDsArrPortSel &= ~0xFF;            // GPIO capability
-  LEDsArrPortDir |= 0xFF;             // output dir
-  LEDsArrPort = 0x00;				  // clear all LEDs
 
   // LCD configuration
   LCD_DATA_WRITE &= ~0xFF;
@@ -20,81 +15,82 @@ void GPIOconfig(void){
   LCD_DATA_SEL &= ~0xF0;   // Bit clear P2.4-P2.7
   LCD_CTL_SEL  &= ~0xE0;   // Bit clear P2.5-P2.7
   
-  // Generator Setup
-//   GenPortDir &=  ~BIT4;               // P2.4 Input Capture = '1'
-//   GenPortSel |=  BIT4;              // P2.4 Select = '1'
-
   // Buzzer Setup
-//   BuzzPortDir |= BIT2;             // P2.2 Output compare - '1'
-//   BuzzPortSel |= BIT2;             // P2.2 Select = '1'
-//   BuzzPortOut &= ~BIT2;             // P2.2 out = '0'
+  BuzzPortDir |= BIT4;             // P2.4 Output compare - '1'
+  BuzzPortSel |= BIT4;             // P2.4 Select = '1'
+  BuzzPortOut &= ~BIT4;             // P2.4 out = '0'
 
-    // Keypad Setup
-  KeypadPortSel &= ~0xFF;
-  KeypadPortDIR = 0x0F; //10.0-10.3 output, 10.4-10.7 input
-  KeypadPortOUT = 0x00; // CLR output
-    // Keypad IRQ Setup
-  KeypadIRQPortSel &= ~0x02;
-  KeypadIRQPortDir &= ~0x02;             // P2.1 input
-  KeypadIRQIntEdgeSel |= 0x02;         // pull-up mode  P2.1 - '1'
-  KeypadIRQIntEn |= 0x02;               // P2.1 - '1'
-  KeypadIRQIntPend &= ~0x02;            // clear pending interrupts P2.1
+  // Potentiometer Setup
+  PotPortSel &= ~BIT3;             // P1.3 Select = '0'
+  PotPortDir &= ~BIT3;             // P1.3 Input = '0'
+  PotPortOut &= ~BIT3;             // P1.3 out = '0'
 
- // Switches Setup
-//   SWsArrPortDir  &= 0xFE;
-//   SWsArrPortSel  &= 0xFE;
-//   SWsArrIntEn  |= 0x01;
-//   SWsArrIntPend &= ~0xFF;           // clear pending interrupts P2.0-2
+  // RGP LEDs Setup
+  RGBArrPortOut &= ~0x07;            // Clear P2.0-2
+  RGBArrPortDir |= 0x07;             // Set P2.0-2 to output ('1')
+  RGBArrPortSEL &= ~0x07;            // GPIO capability
 
   // PushButtons Setup
-  PBsArrPortSel &= ~0x0F;           //
-  PBsArrPortOut &= ~0x0F;            // Set P1Out to '0'
-  PBsArrPortDir &= ~0x0F;            // P1.0-2 - Input ('0')
-  PBsArrPortDir |= 0x00;             // P1.3 - Output ('1')
-  PBsArrIntEdgeSel |= 0x03;          // pull-up mode   P1.0-P1.1 - '1'
-  PBsArrIntEdgeSel &= ~0x0C;         // pull-down mode  P1.2 - '0'
-  PBsArrIntEn |= 0x0F;               // P1.0-3 - '1'
-  PBsArrIntPend &= ~0xFF;            // clear pending interrupts P1.0-P1.3 all P1
+  // PBsArrPortSel &= ~0x0F;           //
+  // PBsArrPortOut &= ~0x0F;            // Set P1Out to '0'
+  // PBsArrPortDir &= ~0x0F;            // P1.0-2 - Input ('0')
+  // PBsArrPortDir |= 0x00;             // P1.3 - Output ('1')
+  // PBsArrIntEdgeSel |= 0x03;          // pull-up mode   P1.0-P1.1 - '1'
+  // PBsArrIntEdgeSel &= ~0x0C;         // pull-down mode  P1.2 - '0'
+  // PBsArrIntEn |= 0x0F;               // P1.0-3 - '1'
+  // PBsArrIntPend &= ~0xFF;            // clear pending interrupts P1.0-P1.3 all P1
 
   _BIS_SR(GIE);                     // enable interrupts globally
 }
 
-//------------------------------------------------------------------------------------- 
-//            Timer 1sec configuration - For state2
 //-------------------------------------------------------------------------------------
-void TIMER0_A0_config(void){
-    WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
-    TACCR0 = 0xFFFF;
-    TA0CTL = TASSEL_2 + MC_3 + ID_3;  //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
-    __bis_SR_register(GIE);       //interrupt
+//            Stop All Timers
+//-------------------------------------------------------------------------------------
+void StopAllTimers(void){
+    TACTL = MC_0; // halt timer A
 
-} 
-//-------------------------------------------------------------------------------------
-//               Timer B
-//-------------------------------------------------------------------------------------
-void TIMERB_config(void){
-    WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
-    TB0CCR2 = 0xFFFF;  // Assuming SMCLK frequency is 1 MHz, 25000 cycles = 25ms period
-    TB0CTL = TBSSEL_2 + MC_3 + ID_3; //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
-    __bis_SR_register(GIE);       //interrupt
 }
-//------------------------------------------------------------------------------------- 
+//-------------------------------------------------------------------------------------
 //            ADC configuration
 //-------------------------------------------------------------------------------------
-// void ADCconfig(void){
-//       ADC10CTL0 = ADC10SHT_2 + ADC10ON+ SREF_0 + ADC10IE;  // 16*ADCLK+ Turn on, set ref to Vcc and Gnd, and Enable Interrupt
-//       ADC10CTL1 = INCH_3 + ADC10SSEL_3;     // Input A3 and SMCLK, was |
-//       ADC10AE0 |= BIT3;                         // P1.3 ADC option select
-// }
-//-------------------------------------------------------------------------------------
-//            DMA configuration 
-//-------------------------------------------------------------------------------------
-void DMA_config(void){
-    DMA0CTL = DMAEN + DMASRCINCR_3 + DMASWDW + DMAIE + DMADT_1; //block-transfer, source inc, word-word trans, Interupt enable
-    DMA1CTL = DMAEN + DMASRCINCR_3 + DMASWDW + DMAIE + DMADT_1; //block-transfer, source inc, word-word trans, Interupt enable
+void ADC_config(void){
+      ADC10CTL0 = ADC10SHT_2 + ADC10ON+ SREF_0 + ADC10IE;  // 16*ADCLK+ Turn on, set ref to Vcc and Gnd, and Enable Interrupt
+      ADC10CTL1 = INCH_3 + ADC10SSEL_3;     // Input A3 and SMCLK, was |
+      ADC10AE0 |= BIT3;                         // P1.3 ADC option select
 }
 
-void DMA_config_RT(void){ // For Main Lab
+//-------------------------------------------------------------------------------------
+//            Timer A 345msec configuration
+//-------------------------------------------------------------------------------------
+void TIMER_A0_config(unsigned int counter){
+    TACCR0 = counter; // (2^20/8)*345m = 45219 -> 0xB0A3
+    TACCTL0 = CCIE;
+    TA0CTL = TASSEL_2 + MC_1 + ID_3;  //  select: 2 - SMCLK ; control: 1 - Up ; divider: 3 - /8
+}
 
+//-------------------------------------------------------------------------------------
+//                              UART init
+//-------------------------------------------------------------------------------------
+void UART_init(void){
+    if (CALBC1_1MHZ==0xFF)                  // If calibration constant erased
+      {
+        while(1);                               // do not load, trap CPU!!
+      }
+    DCOCTL = 0;                               // Select lowest DCOx and MODx settings
+    BCSCTL1 = CALBC1_1MHZ;                    // Set DCO
+    DCOCTL = CALDCO_1MHZ;
+
+    P2DIR = 0xFF;                             // All P2.x outputs
+    P2OUT = 0;                                // All P2.x reset
+    P1SEL = BIT1 + BIT2 ;                     // P1.1 = RXD, P1.2=TXD
+    P1SEL2 = BIT1 + BIT2 ;                     // P1.1 = RXD, P1.2=TXD
+    P1DIR |= RXLED + TXLED;
+    P1OUT &= 0x00;
+
+    UCA0CTL1 |= UCSSEL_2;                     // CLK = SMCLK
+    UCA0BR0 = 104;                           //
+    UCA0BR1 = 0x00;                           //
+    UCA0MCTL = UCBRS0;               //
+    UCA0CTL1 &= ~UCSWRST;                     // **Initialize USCI state machine**
 }
 

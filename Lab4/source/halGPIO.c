@@ -11,10 +11,17 @@ extern unsigned int ledIndex = 0;
 //--------------------------------------------------------------------
 void sysConfig(void){ 
     GPIOconfig();
-    TIMER0_A0_config();
-    TIMERB_config();    
+    StopAllTimers();
+	lcd_init();
+	lcd_clear();
+    UART_init();   
 }
 //--------------------------------------------------------------------
+// 				Set Byte to Port
+//--------------------------------------------------------------------
+void CH2RGB(char ch){
+    RGBArrPortOut = ch;
+} 
 //--------------------------------------------------------------------
 //              Read value of 4-bit SWs array
 //--------------------------------------------------------------------
@@ -201,40 +208,21 @@ void DelayMs(unsigned int cnt){
     for(i=cnt ; i>0 ; i--) DelayUs(1000); // tha command asm("nop") takes raphly 1usec
 }
 //*********************************************************************
-//            TimerA0 Interrupt Service Routine
+//                        TIMER A0 ISR
 //*********************************************************************
-#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector = TIMER0_A0_VECTOR
-__interrupt void Timer_A (void)
-#elif defined(__GNUC__)
-void __attribute__ ((interrupt(TIMER0_A0_VECTOR))) Timer_A (void)
-#else
-#error Compiler not supported!
-#endif
+#pragma vector = TIMER0_A0_VECTOR // For delay
+__interrupt void TimerA_ISR (void)
 {
-    LPM0_EXIT;
-    TACTL = MC_0+TACLR;
-}
-//*********************************************************************
-//            TimerB0 Interrupt Service Routine
-//*********************************************************************
-#pragma vector=TIMERB0_VECTOR
-__interrupt void TimerB_ISR(void) {
-    TB0CCTL0 &= ~CCIFG; // Clear the interrupt flag
-    ledptr++;
-    if(*ledptr == 0){
-        ledptr = LEDarray;
-    }
+    StopAllTimers();
     LPM0_EXIT;
 }
 //*********************************************************************
-//            DMA Interrupt Service Routine
+//                         ADC10 ISR
 //*********************************************************************
-#pragma vector = DMA_VECTOR
-__interrupt void DMA_ISR(void)
+#pragma vector = ADC10_VECTOR
+__interrupt void ADC10_ISR (void)
 {
-  DMA0CTL &= ~DMAIFG;                       // Clear DMA0 interrupt flag
-  __bic_SR_register_on_exit(LPM0_bits);     // Exit LPMx, interrupts enabled
+    __bic_SR_register_on_exit(CPUOFF);
 }
 //*********************************************************************
 //            Port1 Interrupt Service Routine
@@ -284,159 +272,25 @@ __interrupt void DMA_ISR(void)
          break;
     }
 }
-//*********************************************************************
-//            SWitches Vector Interrupt Service Routine
-//*********************************************************************
- #pragma vector=PORT2_VECTOR
- __interrupt void keypadIRQ (void)
- {
-      delay(debounceVal);
-      delay(debounceVal);
-      delay(debounceVal);
-      delay(debounceVal);
-      delay(debounceVal);
-      delay(debounceVal);
-      delay(debounceVal);
-      delay(debounceVal);
-      delay(debounceVal);
-      if(KeypadIRQIntPend & 0x02) { // if keypad has been pressed find value
-          preKB = KB;
-          KB = 75;
-          KeypadPortOUT = 0x0E;
-          if ( ( KeypadPortIN & 0x10 ) == 0 )  KB = 13;
-          else if ( ( KeypadPortIN & 0x20 ) == 0 )  KB = 14;
-          else if ( ( KeypadPortIN & 0x40 ) == 0 )  KB = 16;
-          else if ( ( KeypadPortIN & 0x80 ) == 0 )  KB = 15;
-
-          KeypadPortOUT = 0x0D;
-          if ( ( KeypadPortIN & 0x10 ) == 0 )  KB = 12;
-          else if ( ( KeypadPortIN & 0x20 ) == 0 )  KB = 9;
-          else if ( ( KeypadPortIN & 0x40 ) == 0 )  KB = 8;
-          else if ( ( KeypadPortIN & 0x80 ) == 0 )  KB = 7;
-
-          KeypadPortOUT = 0x0B;
-          if ( ( KeypadPortIN & 0x10 ) == 0 )  KB = 11;
-          else if ( ( KeypadPortIN & 0x20 ) == 0 )  KB = 6;
-          else if ( ( KeypadPortIN & 0x40 ) == 0 )  KB = 5;
-          else if ( ( KeypadPortIN & 0x80 ) == 0 )  KB = 4;
-
-          KeypadPortOUT = 0x07;
-          if ( ( KeypadPortIN & 0x10 ) == 0 )  KB = 10;
-          else if ( ( KeypadPortIN & 0x20 ) == 0 )  KB = 3;
-          else if ( ( KeypadPortIN & 0x40 ) == 0 )  KB = 2;
-          else if ( ( KeypadPortIN & 0x80 ) == 0 )  KB = 1;
-
-          if (preKB == KB) {
-              flag++;
-              if (flag > 2) flag = 0; // reset flag after 3 clicks
-              LCD_CLEAR_LAST; // clear last character
-          } else {
-              flag = 0; // reset flag if a different key is pressed
-          }
-
-          if (i == 16) {
-              LCD_NEW_LINE;
-              //i=0;
-          }
-          printChar();
-          i++;
-          if(flag == 1 || flag == 2){
-              i--;
-          }
-          delay(15000); // For keypad debounce
-          delay(15000);
-          KeypadPortOUT &= ~0x0F; // Reset Row1-4
-          KeypadIRQIntPend &= ~BIT1; // Reset Flag
-      }
-
-      switch(lpm_mode) {
-          case mode0: LPM0_EXIT; break;
-          case mode1: LPM1_EXIT; break;
-          case mode2: LPM2_EXIT; break;
-          case mode3: LPM3_EXIT; break;
-          case mode4: LPM4_EXIT; break;
-      }
-  }
-//*********************************************************************
-// print chat to LCD
-//*********************************************************************
-  void printChar() {
-      if (KB < 10) {
-          switch (KB) {
-              case 1: lcd_data(flag == 0 ? '1' : (flag == 1 ? 'G' : '1')); 
-                        idiom_recorder[i] = (flag == 0 ? '1' : (flag == 1 ? 'G' : '1'));
-                        break;
-              case 2: lcd_data(flag == 0 ? '2' : (flag == 1 ? 'H' : '2')); 
-                        idiom_recorder[i] = (flag == 0 ? '2' : (flag == 1 ? 'H' : '2'));
-                        break;
-              case 3: lcd_data(flag == 0 ? '3' : (flag == 1 ? 'I' : '3')); 
-                        idiom_recorder[i] = (flag == 0 ? '3' : (flag == 1 ? 'I' : '3'));
-                        break;
-              case 4: lcd_data(flag == 0 ? '4' : (flag == 1 ? 'K' : '4')); 
-                        idiom_recorder[i] = (flag == 0 ? '4' : (flag == 1 ? 'K' : '4'));
-                        break;
-              case 5: lcd_data(flag == 0 ? '5' : (flag == 1 ? 'L' : '5')); 
-                        idiom_recorder[i] = (flag == 0 ? '5' : (flag == 1 ? 'L' : '5'));
-                        break;
-              case 6: lcd_data(flag == 0 ? '6' : (flag == 1 ? 'M' : '6')); 
-                        idiom_recorder[i] = (flag == 0 ? '6' : (flag == 1 ? 'M' : '6'));
-                        break;
-              case 7: lcd_data(flag == 0 ? '7' : (flag == 1 ? 'O' : '7')); 
-                        idiom_recorder[i] = (flag == 0 ? '7' : (flag == 1 ? 'O' : '7'));
-                        break;
-              case 8: lcd_data(flag == 0 ? '8' : (flag == 1 ? 'P' : '8')); 
-                        idiom_recorder[i] = (flag == 0 ? '8' : (flag == 1 ? 'P' : '8'));
-                        break;
-              case 9: lcd_data(flag == 0 ? '9' : (flag == 1 ? 'Q' : '9')); 
-                        idiom_recorder[i] = (flag == 0 ? '9' : (flag == 1 ? 'Q' : '9'));
-                        break;
-
-          }
-      } else {
-          switch (KB) {
-              case 16: lcd_data(flag == 0 ? '0' : (flag == 1 ? 'U' : 'V'));
-                        idiom_recorder[i] = (flag == 0 ? '0' : (flag == 1 ? 'U' : 'V'));
-                        break;
-              case 15: lcd_data(flag == 0 ? 'A' : (flag == 1 ? 'S' : 'T')); 
-                        idiom_recorder[i] = (flag == 0 ? 'A' : (flag == 1 ? 'S' : 'T'));
-                        break;
-              case 14: lcd_data(flag == 0 ? 'B' : (flag == 1 ? 'W' : 'X')); 
-                        idiom_recorder[i] = (flag == 0 ? 'B' : (flag == 1 ? 'W' : 'X'));
-                        break;
-              case 13: lcd_data(flag == 0 ? 'F' : (flag == 1 ? 'Y' : 'Z')); 
-                        idiom_recorder[i] = (flag == 0 ? 'F' : (flag == 1 ? 'Y' : 'Z'));
-                        break;
-              case 12: lcd_data(flag == 0 ? 'E' : 'R'); 
-                        idiom_recorder[i] = (flag == 0 ? 'E' : 'R');
-                        break;
-              case 11: lcd_data(flag == 0 ? 'D' : 'N'); 
-                        idiom_recorder[i] = (flag == 0 ? 'D' : 'N');
-                        break;
-              case 10: lcd_data(flag == 0 ? 'C' : 'J'); 
-                        idiom_recorder[i] = (flag == 0 ? 'C' : 'J');
-                        break;
-          }
-      }
-  }
-//*********************************************************************
-//             Start TimerB
-//*********************************************************************
-void startTimerB(void){
-    TB0CCTL0 = CCIE; // CCR0 interrupt enabled
-    TB0CCR2 = 0xFFFF; // 
-    TB0CTL = TBSSEL_2 + MC_2 + ID_3 + TBCLR; // ACLK, upmode, clear TAR
-    __bis_SR_register(GIE); // Enter LPM0
-}
-//-------------------------------------------------------------
-//              StartTimer For StopWatch
-//-------------------------------------------------------------
-void startTimerA0(){
-    TA0CCTL0 = CCIE;  // CCR0 interrupt enabled
-    TACCR0 = 0xFFFF;  // Timer Cycles - max
-    TA0CTL = TASSEL_2 + MC_3 + ID_3;  //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
-    // ACLK doesn't work on our msp, so we have to use smclk and divide the freq to get to 1 sec.
-    __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
-}
+// //*********************************************************************
+// //             Start TimerB
+// //*********************************************************************
+// void startTimerB(void){
+//     TB0CCTL0 = CCIE; // CCR0 interrupt enabled
+//     TB0CCR2 = 0xFFFF; // 
+//     TB0CTL = TBSSEL_2 + MC_2 + ID_3 + TBCLR; // ACLK, upmode, clear TAR
+//     __bis_SR_register(GIE); // Enter LPM0
+// }
+// //-------------------------------------------------------------
+// //              StartTimer For StopWatch
+// //-------------------------------------------------------------
+// void startTimerA0(){
+//     TA0CCTL0 = CCIE;  // CCR0 interrupt enabled
+//     TACCR0 = 0xFFFF;  // Timer Cycles - max
+//     TA0CTL = TASSEL_2 + MC_3 + ID_3;  //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
+//     // ACLK doesn't work on our msp, so we have to use smclk and divide the freq to get to 1 sec.
+//     __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
+// }
 //-------------------------------------------------------------------------------------
 //            Stop All Timers
 //-------------------------------------------------------------------------------------
@@ -446,40 +300,106 @@ void StopAllTimers(void){
     DMA0CTL &= ~DMAEN; // Stop DMA0
     DMA1CTL &= ~DMAEN; // Stop DMA1
 }
-//-------------------------------------------------------------------------------------
-//            DMA Configuration
-//-------------------------------------------------------------------------------------
-void DMA0_STATE2(int *ptr1, int len1, int *ptr_merge){
-     // Use DMA to transfer the word
-    DMA0SA = (void (*)())ptr1;  // Source address for merge1
-    DMA0DA = (void (*)())ptr_merge;  // Destination address for strMerge
-    DMA0SZ = len1;  // Block size
-    DMA0CTL = DMAEN + DMASRCINCR_3 + DMADSTINCR_3 + DMADT_1 + DMASRCBYTE + DMADSTBYTE;  // Enable DMA, source and destination increment, block transfer mode
-    DMA0CTL |= DMAREQ;  // Manually trigger DMA transfer for merge1 word
-    while (DMA0CTL & DMAEN);  // Wait for DMA transfer to complete
+//*********************************************************************
+//                           TX ISR
+//*********************************************************************
+#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+#pragma vector=USCIAB0TX_VECTOR
+__interrupt void USCI0TX_ISR(void)
+#elif defined(__GNUC__)
+void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
+#else
+#error Compiler not supported!
+#endif
+{
+    if(state == state8) UCA0TXBUF = '8'; //print menu in PC
+    else if (state == state7) UCA0TXBUF = '7';
+    else if (delay_ifg) UCA0TXBUF = '4';
+    else UCA0TXBUF = 'F';   // Finish
+    IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
 }
-void DMA1_STATE2(int *ptr2, int len2, int *ptr_merge){
-    // Use DMA to transfer the word
-    DMA1SA = (void (*)())ptr2;  // Source address for merge2
-    DMA1DA = (void (*)())ptr_merge;  // Destination address for strMerge
-    DMA1SZ = len2;  // Block size
-    DMA1CTL = DMAEN + DMASRCINCR_3 + DMADSTINCR_3 + DMADT_1 + DMASRCBYTE + DMADSTBYTE;  // Enable DMA, source and destination increment, block transfer mode
-    DMA1CTL |= DMAREQ;  // Manually trigger DMA transfer for merge2 word
-    while (DMA1CTL & DMAEN);  // Wait for DMA transfer to complete
+
+
+//*********************************************************************
+//                         RX ISR
+//*********************************************************************
+#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+#pragma vector=USCIAB0RX_VECTOR
+__interrupt void USCI0RX_ISR(void)
+#elif defined(__GNUC__)
+void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
+#else
+#error Compiler not supported!
+#endif
+{
+    if(UCA0RXBUF == '1' && delay_ifg == 0){
+        state = state1;
+        IE2 |= UCA0TXIE;
+    }
+    else if(UCA0RXBUF == '2' && delay_ifg == 0){
+        state = state2;
+        IE2 |= UCA0TXIE;
+    }
+    else if(UCA0RXBUF == '3' && delay_ifg == 0){
+        state = state3;
+        IE2 |= UCA0TXIE;
+    }
+    else if(UCA0RXBUF == '4' || delay_ifg){
+
+        if (delay_ifg == 1){
+            string1[j] = UCA0RXBUF;
+            j++;
+            if (string1[j-1] == '\n'){
+                j = 0;
+                delay_ifg = 0;
+                state_flag = 0;
+                state = state4;
+                IE2 |= UCA0TXIE;        // Enable USCI_A0 TX interrupt
+
+            }
+        }
+        else{
+        delay_ifg = 1;
+        IE2 |= UCA0TXIE;        // Enable USCI_A0 TX interrupt
+        }
+
+    }
+    else if(UCA0RXBUF == '5' && delay_ifg == 0){
+        state = state5;
+        IE2 |= UCA0TXIE;
+    }
+    else if(UCA0RXBUF == '6' && delay_ifg == 0){
+        state = state6;
+        IE2 |= UCA0TXIE;
+    }
+    else if(UCA0RXBUF == '7' && delay_ifg == 0){ //RealTime
+        state = state7;
+    }
+    else if(UCA0RXBUF == '8' && delay_ifg == 0){
+        state = state8;
+        IE2 |= UCA0TXIE;                        // Enable USCI_A0 TX interrupt
+    }
+    else if(UCA0RXBUF == '9' && delay_ifg == 0){
+        state = state9;
+        IE2 |= UCA0TXIE;
+    }
+
+    switch(lpm_mode){
+    case mode0:
+        LPM0_EXIT; // must be called from ISR only
+        break;
+    case mode1:
+        LPM1_EXIT; // must be called from ISR only
+        break;
+    case mode2:
+        LPM2_EXIT; // must be called from ISR only
+        break;
+    case mode3:
+        LPM3_EXIT; // must be called from ISR only
+        break;
+    case mode4:
+        LPM4_EXIT; // must be called from ISR only
+        break;
+    }
 }
-void DMA0_STATE3(){
-    DMACTL0 = DMA0TSEL_2;  // TimerB0 trigger for DMA0
-    DMA0SA = (void (*)())ledptr;  // Source address for LEDarray
-    DMA0DA = (void (*)())&LEDsArrPort ;  // Destination address for LEDsArrPort
-    DMA0SZ = 1;  // Block size
-    DMA0CTL = DMAEN + DMASRCINCR_3 + DMADSTINCR_0 + DMADT_1 + DMASBDB + DMAIE;  // Enable DMA, source increment, block transfer mode
-}
-void DMA0_STATE4(int *ptr1, int len1, int *ptr_merge){
-     // Use DMA to transfer the word
-    DMA0SA = (void (*)())ptr1;  // Source address for merge1
-    DMA0DA = (void (*)())ptr_merge;  // Destination address for strMerge
-    DMA0SZ = len1;  // Block size
-    DMA0CTL = DMAEN + DMASRCINCR_2 + DMADSTINCR_3 + DMADT_1 + DMASRCBYTE + DMADSTBYTE;  // Enable DMA, source and destination increment, block transfer mode
-    DMA0CTL |= DMAREQ;  // Manually trigger DMA transfer for merge1 word
-    while (DMA0CTL & DMAEN);  // Wait for DMA transfer to complete
-}
+
