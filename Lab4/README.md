@@ -9,3 +9,4 @@
 - mode 8 done
 ### Need to do:
 1. measure Vref for ADC (~3.3-3.6)
+2. work on buzzer function
