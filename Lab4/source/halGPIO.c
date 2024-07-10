@@ -2,9 +2,9 @@
 #define LCD_NEW_LINE   {lcd_cmd(0xC0);} // go to second line on the LCD
 #define LCD_CLEAR_LAST {lcd_cmd(0x10);} // move cursor left to clear last character
 // Global Variables
-extern unsigned int preKB=0;
-extern unsigned int flag=0;
-extern unsigned int ledIndex = 0;
+
+unsigned int Xdelay = 500; // 500 ms
+char DelayString[5]; 
 
 //--------------------------------------------------------------------
 //             System Configuration  
@@ -22,6 +22,43 @@ void sysConfig(void){
 void CH2RGB(char ch){
     RGBArrPortOut = ch;
 } 
+//---------------------------------------------------------------------
+//----------------------Int to String---------------------------------
+void int2str(char *str, unsigned int num){
+    int strSize = 0;
+    long tmp = num, len = 0;
+    int j;
+    // Find the size of the intPart by repeatedly dividing by 10
+    while(tmp){
+        len++;
+        tmp /= 10;
+    }
+
+    // Print out the numbers in reverse
+    for(j = len - 1; j >= 0; j--){
+        str[j] = (num % 10) + '0';
+        num /= 10;
+    }
+    strSize += len;
+    str[strSize] = '\0';
+}
+//----------------------X [ms] delay---------------------------------
+void XmsDelay(){
+    unsigned int HalfCycle = (int) Xdelay / half_sec;
+    unsigned int res;
+    // res = Xdelay % half_sec;
+    // res = res * clk_tmp;
+
+    for (i=0; i < HalfCycle; i++){
+        TIMER_A0_config(HalfCycle);
+        __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ int until Byte RXed
+    }
+
+    // if (res > 1000){
+    //     TIMER_A0_config(res);
+    //     __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ int until Byte RXed
+    // }
+}
 //--------------------------------------------------------------------
 //              Read value of 4-bit SWs array
 //--------------------------------------------------------------------
@@ -345,7 +382,6 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
         IE2 |= UCA0TXIE;
     }
     else if(UCA0RXBUF == '4' || delay_ifg){
-
         if (delay_ifg == 1){
             string1[j] = UCA0RXBUF;
             j++;
@@ -355,14 +391,12 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
                 state_flag = 0;
                 state = state4;
                 IE2 |= UCA0TXIE;        // Enable USCI_A0 TX interrupt
-
             }
         }
         else{
         delay_ifg = 1;
         IE2 |= UCA0TXIE;        // Enable USCI_A0 TX interrupt
         }
-
     }
     else if(UCA0RXBUF == '5' && delay_ifg == 0){
         state = state5;
@@ -378,10 +412,6 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
     else if(UCA0RXBUF == '8' && delay_ifg == 0){
         state = state8;
         IE2 |= UCA0TXIE;                        // Enable USCI_A0 TX interrupt
-    }
-    else if(UCA0RXBUF == '9' && delay_ifg == 0){
-        state = state9;
-        IE2 |= UCA0TXIE;
     }
 
     switch(lpm_mode){
