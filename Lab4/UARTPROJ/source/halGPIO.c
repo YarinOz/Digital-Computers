@@ -346,7 +346,6 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
 //        IE2 |= UCA0TXIE;
     }
     else if(UCA0RXBUF == '4' || delay_ifg){
-
         if (delay_ifg == 1){
             string1[j] = UCA0RXBUF;
             j++;
@@ -356,14 +355,12 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
                 state_flag = 0;
                 state = state4;
 //                IE2 |= UCA0TXIE;        // Enable USCI_A0 TX interrupt
-
             }
         }
         else{
         delay_ifg = 1;
 //        IE2 |= UCA0TXIE;        // Enable USCI_A0 TX interrupt
         }
-
     }
     else if(UCA0RXBUF == '5' && delay_ifg == 0){
         state = state5;
@@ -383,7 +380,7 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
     }
     else{
         state = state0;
-//        IE2 |= UCA0TXIE;
+        IE2 |= UCA0TXIE;
     }
 
     switch(lpm_mode){
