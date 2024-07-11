@@ -37,10 +37,10 @@
 #define PBsArrPortSel      P1SEL
 #define PBsArrPortDir      P1DIR
 #define PBsArrPortOut      P1OUT
-// #define PB0                0x01   // P1.0
+#define PB0                0x01   // P1.0
 #define PB1                0x02  // P1.1
 #define PB2                0x04  // P1.2
-// #define PB3                0x10   // P2.0
+#define PB3                0x10   // P2.0
 
 #define TXLED BIT0
 #define RXLED BIT6

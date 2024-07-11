@@ -9,19 +9,10 @@
 #define   debounceVal      250
 #define   LEDs_SHOW_RATE   0xFFFF  // 62_5ms
 
-// LEDs abstraction
-#define LEDsArrPort        P9OUT
-#define LEDsArrPortDir     P9DIR
-#define LEDsArrPortSel     P9SEL
-
-// Switches abstraction
-#define SWsArrPort         P2IN
-#define SWsArrPortDir      P2DIR
-#define SWsArrPortSel      P2SEL
-#define SWsArrIntEn        P2IE
-#define SWsArrIntEdgeSel   P2IES
-#define SWsArrIntPend      P2IFG
-#define SWmask             0x01
+// RGB abstraction R->P2.2, G->P2.1, B->P2.0
+#define RGBArrPortOut      P2OUT
+#define RGBArrPortDir      P2DIR
+#define RGBArrPortSEL      P2SEL
 
 // LCDs abstraction
 #define LCD_DATA_WRITE     P1OUT
@@ -30,29 +21,16 @@
 #define LCD_DATA_SEL       P1SEL
 #define LCD_CTL_SEL        P2SEL
 
-//   Generator abstraction
-#define GenPort            P2IN
-#define GenPortSel         P2SEL
-#define GenPortDir         P2DIR
-#define GenPortOut         P2OUT
-
-//   Buzzer abstraction
+//   Buzzer abstraction P2.4
 #define BuzzPortSel        P2SEL
 #define BuzzPortDir        P2DIR
 #define BuzzPortOut        P2OUT
 
-//  Keypad abstraction
-#define KeypadPortSel         P10SEL
-#define KeypadPortDIR         P10DIR
-#define KeypadPortOUT         P10OUT
-#define KeypadPortIN          P10IN
-#define KeypadIRQPort         P2IN  // P2.1 IRQ
-#define KeypadIRQIntPend      P2IFG
-#define KeypadIRQIntEn        P2IE
-#define KeypadIRQIntEdgeSel   P2IES
-#define KeypadIRQPortSel      P2SEL
-#define KeypadIRQPortDir      P2DIR
-#define KeypadIRQPortOut      P2OUT
+// Potentiometer abstraction P1.3
+#define PotPort            P1IN
+#define PotPortSel         P1SEL
+#define PotPortDir         P1DIR
+#define PotPortOut         P1OUT
 
 // PushButtons abstraction
 #define PBsArrPort         P1IN
@@ -65,15 +43,17 @@
 #define PB0                0x01   // P1.0
 #define PB1                0x02  // P1.1
 #define PB2                0x04  // P1.2
-#define PB3                0x08   // P2.0
+#define PB3                0x10   // P2.0
 
+#define TXLED BIT0
+#define RXLED BIT6
+#define TXD BIT2
+#define RXD BIT1
 
 extern void GPIOconfig(void);
-extern void TIMER0_A0_config(void);
-//extern void TIMER1_A1_config(void);
-// extern void ADCconfig(void);
-extern void DMA_config(void);
-extern void DMA_config_RT(void);
+extern void TIMER_A0_config(unsigned int counter);
+extern void TIMER1_A2_config(void);
+extern void TIMER1_A1_config(void);
 extern void StopAllTimers(void);
 
 #endif
