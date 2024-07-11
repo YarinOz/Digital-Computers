@@ -1,4 +1,3 @@
-import sys
 import serial as ser
 import time
 
@@ -21,6 +20,10 @@ def transmit_data(serial_comm):
         if 0 <= int(state) <= 8:
             serial_comm.write(bytes(state, 'ascii'))
             time.sleep(0.25)
+            if state == '4':
+                x = input("Enter new delay: ")
+                serial_comm.write(bytes(x + '\n', 'ascii'))  # Send delay with newline
+                time.sleep(0.25)  # Delay for accurate read/write operations on both ends
         else:
             print("Invalid input")
     return False  # Always return False to prevent indefinite looping
