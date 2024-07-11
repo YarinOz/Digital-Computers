@@ -41,16 +41,39 @@ void LCDcount(){
     }
 }
 //-------------------------------------------------------------
-//                3. Count Down from 65535 to 0
+//                3. Buzzer
 //------------------------------------------------------------
 void CircBuzzer(){
+    // Define the tone series in Hz
+    int toneSeries[] = {1000, 1250, 1500, 1750, 2000, 2250, 2500};
+    //int numTones = sizeof(toneSeries) / sizeof(toneSeries[0]);
+    int numTones = 7;
+    int currentToneIndex = 0;
+
     while(state==state3){
         lcd_clear();
         lcd_home();
-        // buzzer function 
-        // tone the buzzer using {1, 1.25, 1.5, 1.75, 2, 2.25, 2.5} kHz periodically with Xdelay
-        
+
+        // Set the buzzer to the current tone
+        setBuzzerFrequency(toneSeries[currentToneIndex]);
+
+        // Display the current tone on the LCD for debugging purposes
+        char buffer[20];
+        sprintf(buffer, "Tone: %d Hz", toneSeries[currentToneIndex]);
+        lcd_puts(buffer);
+
+        // Wait for the specified delay time
+        XmsDelay();
+
+        // Move to the next tone in the series
+        currentToneIndex = (currentToneIndex + 1) % numTones;
     }
+}
+void setBuzzerFrequency(int frequency) {
+    TA0CCR0 = 1048576 / frequency - 1; // Set the period of the PWM signal ,SMCLK freq 2^20
+    TA0CCTL1 = OUTMOD_7;                // Set/Reset mode
+    TA0CCR1 = TA0CCR0 / 2;              // 50% duty cycle
+    TA0CTL = TASSEL_2 + MC_1;           // SMCLK, Up mode
 }
 //-------------------------------------------------------------
 //                4. Change Delay Time [ms]
