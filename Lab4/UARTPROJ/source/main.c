@@ -3,9 +3,6 @@
 #include  <stdio.h>
 
 
-//------------------------Roy Kislev-----------------------------
-//----------------------Michael Grenader-------------------------
-
 enum FSMstate state;
 enum SYSmode lpm_mode;
 

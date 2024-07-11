@@ -12,19 +12,18 @@ unsigned int delay_time = 500;
 const unsigned int timer_half_sec = 65535;
 
 volatile int menu_index = 0; // Index to keep track of the current character in the menu string
-
-
-//const char menu[] = "\n"
-//                    "-------------------------MENU-------------------------\n"
-//                    "1. Blink RGB of love, color by color with delay of X[ms]\n"
-//                    "2. Count up onto LCD screen with delay of X[ms]\n"
-//                    "3. Circular tone series via Buzzer with delay of X[ms]\n"
-//                    "4. Get delay time X[ms]:\n"
-//                    "5. LDR 3-digit value [v] onto LCD\n"
-//                    "6. Clear LCD screen\n"
-//                    "7. Show menu\n"
-//                    "8. Sleep\n";
-const char menu[] = "hello";
+const char menu[] = "\n"
+                    "-------------------------MENU-------------------------\n"
+                    "1. Blink RGB of love, color by color with delay of X[ms]\n"
+                    "2. Count up onto LCD screen with delay of X[ms]\n"
+                    "3. Circular tone series via Buzzer with delay of X[ms]\n"
+                    "4. Get delay time X[ms]:\n"
+                    "5. LDR 3-digit value [v] onto LCD\n"
+                    "6. Clear LCD screen\n"
+                    "7. Show menu\n"
+                    "8. Sleep\n"
+                    "------------------------------------------------------$";
+//const char menu[] = "hello";
 
 //--------------------------------------------------------------------
 //             System Configuration  
@@ -298,6 +297,7 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
             IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
             IE2 |= UCA0RXIE;                         // Enable USCI_A0 RX interrupt
             state=state0;
+//            __bis_SR_register(LPM0_bits + GIE);
         } else {
             menu_index++; // Increment index after checking the current character
         }
@@ -364,6 +364,10 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
     }
     else if(UCA0RXBUF == '8' && delay_ifg == 0){
         state = state8;
+        IE2 |= UCA0TXIE;
+    }
+    else{
+        state = state0;
         IE2 |= UCA0TXIE;
     }
 
