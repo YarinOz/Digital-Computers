@@ -3,59 +3,46 @@ import serial as ser
 import time
 
 state = '7'
-j = 0
 
-def receive_data(serial_comm, enableTX, delay=0.25):
+def receive_data(serial_comm):
     global state
-    # RX
-    while (serial_comm.in_waiting > 0):  # while the input buffer isn't empty
-        menu = serial_comm.read_until(expected ='\r').decode("ascii")
-        print(menu)
-        enableTX = True
-        time.sleep(delay)  # delay for accurate read/write operations on both ends
+    enableTX = False
+    if serial_comm.in_waiting > 0:
+        received_char = serial_comm.read_until(b'$').decode("ascii").strip()
+        print(f"Received: {received_char}")
+        enableTX = True  # Enable TX after receiving data
+        time.sleep(0.25)
     return enableTX
 
-
-def transmit_data(serial_comm, enableTX, delay=0.25):
-    while (serial_comm.out_waiting > 0 or enableTX):  # while the output buffer isn't empty
-        global state
-        state = input(" enter menu option: ")
-        serial_comm.write(bytes(state, 'ascii'))
-        time.sleep(delay)  # delay for accurate read/write operations on both
-        enableTX = True
-
-        if (state == '4'):
-            x = input("enter new delay: ")
-            serial_comm.write(bytes(x + '\0', 'ascii'))
-            time.sleep(delay)  # delay for accurate read/write operations on both ends
-        while (1):
-            # RX
-            enableTX = receive_data(serial_comm, enableTX)
-            # TX
-            enableTX = transmit_data(serial_comm, enableTX)
-        if (serial_comm.out_waiting == 0):
-            return False
-
-    return enableTX
-
+def transmit_data(serial_comm):
+    global state
+    if state:
+        state = input("Enter option: ")
+        if 0 <= int(state) <= 8:
+            serial_comm.write(bytes(state, 'ascii'))
+            time.sleep(0.25)
+        else:
+            print("Invalid input")
+    return False  # Always return False to prevent indefinite looping
 
 def start_communication():
-    serial_comm = ser.Serial('COM37', baudrate=9600, bytesize=ser.EIGHTBITS,
+    serial_comm = ser.Serial('COM19', baudrate=9600, bytesize=ser.EIGHTBITS,
                              parity=ser.PARITY_NONE, stopbits=ser.STOPBITS_ONE,
                              timeout=1)
     serial_comm.reset_input_buffer()
     serial_comm.reset_output_buffer()
-    enableTX = False
-    while (1):
-        # RX
-        enableTX = receive_data(serial_comm, enableTX)
-        # TX
-        enableTX = transmit_data(serial_comm, enableTX)
 
+    while True:
+        # RX
+        if receive_data(serial_comm):
+            continue
+
+        # TX
+        if transmit_data(serial_comm):
+            continue
 
 def main():
     start_communication()
-
 
 if __name__ == "__main__":
     main()
