@@ -18,7 +18,10 @@ void GPIOconfig(void){
   RGBArrPortOut = 0x00;
   RGBArrPortSEL &= ~0x07;
 
-
+  // Buzzer Setup
+   BuzzPortDir |= BIT4;             // P2.4 Output compare - '1'
+   BuzzPortSel |= BIT4;             // P2.4 Select = '1'
+   BuzzPortOut &= ~BIT4;             // P2.4 out = '0'
 
   _BIS_SR(GIE);                     // enable interrupts globally
 
@@ -48,7 +51,12 @@ void TIMER_A0_config(unsigned int counter){
     TACCTL0 = CCIE;
     TA0CTL = TASSEL_2 + MC_1 + ID_3;  //  select: 2 - SMCLK ; control: 1 - Up ; divider: 3 - /8
 }
-
+//-----------------------------------------------------s--------------------------------
+//            Timer1 A1 configuration - For state3
+//-------------------------------------------------------------------------------------
+void TIMER1_A1_config(void){
+    TA1CCTL1 =  OUTMOD_7; // TA1CCR1 reset/set;
+}
 //-------------------------------------------------------------------------------------
 //                              UART init
 //-------------------------------------------------------------------------------------

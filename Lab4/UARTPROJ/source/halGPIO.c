@@ -268,7 +268,32 @@ __interrupt void TimerA_ISR (void)
     StopAllTimers();
     LPM0_EXIT;
 }
-
+//*********************************************************************
+//            TimerA1 Interrupt Service Routine
+//*********************************************************************
+#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+#pragma vector = TIMER1_A1_VECTOR
+__interrupt void TIMER1_A1_ISR(void)
+#elif defined(__GNUC__)
+void __attribute__ ((interrupt(TIMER1_A1_VECTOR))) TIMER1_A1_ISR (void)
+#else
+#error Compiler not supported!
+#endif
+{
+  switch(__even_in_range(TA1IV, 0x0A))
+  {
+      case  TA1IV_NONE: break;              // Vector  0:  No interrupt
+      case  TA1IV_TACCR1:                   // Vector  2:  TACCR1 CCIFG
+          TA1CTL &= ~(TAIFG);
+          BuzzPortOut = 1-BuzzPortOut;
+        break;
+      case TA1IV_TACCR2: break;
+      case TA1IV_6: break;                  // Vector  6:  Reserved CCIFG
+      case TA1IV_8: break;                  // Vector  8:  Reserved CCIFG
+      case TA1IV_TAIFG: break;              // Vector 10:  TAIFG
+      default:  break;
+  }
+}
 //*********************************************************************
 //                         ADC10 ISR
 //*********************************************************************

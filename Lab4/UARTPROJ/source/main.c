@@ -28,7 +28,7 @@ void main(void){
 	    break;
 
 	case state3: ; // Count down onto LCD
-	    count_down_LCD();
+	    CircBuzzer();
 		break;
 		
 	case state4: // Change Delay Time in ms

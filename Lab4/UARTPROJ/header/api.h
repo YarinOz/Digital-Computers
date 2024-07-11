@@ -10,6 +10,7 @@ extern void count_down_LCD();
 extern void clear_counters();
 extern void measure_pot();
 extern void change_delay_time();
+extern void CircBuzzer();
 
 
 

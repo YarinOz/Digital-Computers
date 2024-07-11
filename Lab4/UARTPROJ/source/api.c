@@ -47,18 +47,37 @@ void count_up_LCD(){
 //-------------------------------------------------------------
 //                3. Count Down from 65535 to 0
 //------------------------------------------------------------
-void count_down_LCD(){
+void CircBuzzer(){
+    // Define the tone series in Hz
+    int toneSeries[] = {1000, 1250, 1500, 1750, 2000, 2250, 2500};
+    //int numTones = sizeof(toneSeries) / sizeof(toneSeries[0]);
+    int numTones = 7;
+    int currentToneIndex = 0;
+
     while(state==state3){
         lcd_clear();
         lcd_home();
-        lcd_puts("Count Down: ");
-        lcd_new_line;
-        int2str(count_down_str, *count_down_address);
-        lcd_puts(count_down_str);
+        TA1CCTL1 =  OUTMOD_7; // TA1CCR1 reset/set;
+        TA1CTL = TASSEL_2 + MC_1;                  // SMCLK, upmode
+
+        float SMCLK_FREQ = 1048576; // SMCLK freq 2^20
+        unsigned int period_to_pwm = SMCLK_FREQ/(toneSeries[currentToneIndex]);
+
+        TA1CCR0 = period_to_pwm;            // PWM Period
+        TA1CCR1 = (int) period_to_pwm/2;    // 50% Duty Cycle
+
+        // Display the current tone on the LCD for debugging purposes
+        char buffer[20];
+        sprintf(buffer, "Tone: %d Hz", toneSeries[currentToneIndex]);
+        lcd_puts(buffer);
+
+        // Wait for the specified delay time
         timer_call_counter();
-        *count_down_address = (*count_down_address - 1);
-        if (*count_down_address == 0) *count_down_address = 65535;
+
+        // Move to the next tone in the series
+        currentToneIndex = (currentToneIndex + 1) % numTones;
     }
+    TA1CTL = MC_0 ; // Stop Timer
 }
 //-------------------------------------------------------------
 //                4. Change Delay Time [ms]
