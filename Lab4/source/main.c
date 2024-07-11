@@ -4,9 +4,6 @@
 enum FSMstate state;
 enum SYSmode lpm_mode;
 
-unsigned int EndOfRecord = 0;
-unsigned int i = 0;
-unsigned int KB;
 
 void main(void){
   

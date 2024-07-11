@@ -11,6 +11,10 @@
 extern enum FSMstate state;   // global variable
 extern enum SYSmode lpm_mode; // global variable
 extern unsigned int Xdelay;   // global variable
+extern char DelayString[5];
+
+#define half_sec 500;
+#define clk_tmp 131; // convert ms to counter value
 
 extern void sysConfig(void);
 extern void SetByteToPort(char); // Added By RK
@@ -19,15 +23,14 @@ extern void delay(unsigned int);
 extern void enterLPM(unsigned char);
 extern void enable_interrupts();
 extern void disable_interrupts();
-extern unsigned char readSWs(void);
 extern void printChar();
 extern void startTimerB();
 extern void startTimerA0();
-extern void StopAllTimers();
-extern void DMA0_STATE2(int *ptr1, int len1, int *ptr_merge);
-extern void DMA1_STATE2(int *ptr2, int len2, int *ptr_merge);
-extern void DMA0_STATE3();
-extern void DMA0_STATE4(int *ptr1, int len1, int *ptr_merge);
+extern void GPIOconfig(void);
+extern void UART_init(void);
+extern void XmsDelay();
+extern void int2str(char *str, unsigned int num);
+extern void CH2RGB(char ch);
 
 extern __interrupt void PBs_handler(void);
 extern __interrupt void keypadIRQ(void);

@@ -8,10 +8,13 @@ extern unsigned int Xdelay;   // global variable
 extern void startTimerA0();
 extern void startTimerB();
 extern void StopAllTimers();
-extern void DMA0_STATE2(int *ptr1, int len1, int *ptr_merge);
-extern void DMA1_STATE2(int *ptr2, int len2, int *ptr_merge);
-extern void DMA0_STATE3();
-extern void DMA0_STATE4(int *ptr1, int len1, int *ptr_merge);
+extern void RGBlink();
+extern void LCDcount();
+extern void CircBuzzer();
+extern void GetDelay();
+extern void Pot2LCD();
+extern void ClearAll();
+
 // extern void RTLAB();
 
 #endif

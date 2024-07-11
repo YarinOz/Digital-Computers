@@ -29,7 +29,7 @@
 #define PotPortDir         P1DIR
 #define PotPortOut         P1OUT
 
-PushButtons abstraction
+// PushButtons abstraction
 #define PBsArrPort         P1IN
 #define PBsArrIntPend      P1IFG
 #define PBsArrIntEn        P1IE
@@ -48,8 +48,9 @@ PushButtons abstraction
 #define RXD BIT1
 
 extern void GPIOconfig(void);
-extern void TIMER0_A0_config(void);
+extern void TIMER_A0_config(unsigned int counter);
 extern void TIMER1_A2_config(void);
 extern void TIMER1_A1_config(void);
+extern void StopAllTimers(void);
 
 #endif

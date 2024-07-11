@@ -8,7 +8,7 @@ unsigned int count_up = 0;
 char count_up_str[5];
 unsigned int* count_up_address = &count_up;
 const unsigned int resolution = 1024;
-const float v_ref = 3.41;  // Reference voltage for ADC (need to be measured)
+const float v_ref = 3.40;  // Reference voltage for ADC (need to be measured)
 float potentiometer;
 char leftSTR[4];
 char rightSTR[1];
@@ -55,7 +55,7 @@ void CircBuzzer(){
 //-------------------------------------------------------------
 //                4. Change Delay Time [ms]
 //------------------------------------------------------------
-void change_delay_time(){
+void GetDelay(){
     Xdelay = atoi(DelayString);  // Get delay time from user
     state = state8;
 }

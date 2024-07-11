@@ -5,7 +5,19 @@
 
 unsigned int Xdelay = 500; // 500 ms
 char DelayString[5]; 
-
+unsigned int i;
+int j=0;
+int delay_ifg = 0;
+int state_flag = 0;
+char menu[] = "                        Menu\n\
+        1. Blink RGB LED, color by color with delay of X[ms]\n\
+        2. Counting up onto LCD screen with delay of X[ms]\n\
+        3. Circular tone series via Buzzer with delay of X[ms]\n\
+        4. Get delay time X[ms]\n\
+        5. Potentiometer 3-digit value [v] onto LCD\n\
+        6. Clear LCD screen\n\
+        7. Show menu\n\
+        8. Sleep ";
 //--------------------------------------------------------------------
 //             System Configuration  
 //--------------------------------------------------------------------
@@ -46,28 +58,21 @@ void int2str(char *str, unsigned int num){
 void XmsDelay(){
     unsigned int HalfCycle = (int) Xdelay / half_sec;
     unsigned int res;
-    // res = Xdelay % half_sec;
-    // res = res * clk_tmp;
+     res = Xdelay % half_sec;
+     res = res * clk_tmp;
 
     for (i=0; i < HalfCycle; i++){
         TIMER_A0_config(HalfCycle);
         __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ int until Byte RXed
     }
 
-    // if (res > 1000){
-    //     TIMER_A0_config(res);
-    //     __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ int until Byte RXed
-    // }
+     if (res > 1000){
+         TIMER_A0_config(res);
+         __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ int until Byte RXed
+     }
 }
-//--------------------------------------------------------------------
-//              Read value of 4-bit SWs array
-//--------------------------------------------------------------------
-unsigned char readSWs(void){
-    unsigned char ch;
+void ShowMenu(){
 
-    ch = SWsArrPort;
-    ch &= SWmask;     // mask the least 4-bit
-    return ch;
 }
 //--------------------------------------------------------------------
 //              Set Byte to Port
@@ -264,51 +269,51 @@ __interrupt void ADC10_ISR (void)
 //*********************************************************************
 //            Port1 Interrupt Service Routine
 //*********************************************************************
-#pragma vector=PORT1_VECTOR
-  __interrupt void PBs_handler(void){
-   
-    delay(debounceVal);
-    delay(15000); // For keypad debounce
-//---------------------------------------------------------------------
-//            selector of transition between states
-//---------------------------------------------------------------------
-    if(PBsArrIntPend & PB0){
-      state = state1;
-      PBsArrIntPend &= ~PB0;
-        }
-        else if(PBsArrIntPend & PB1){
-      state = state2;
-      PBsArrIntPend &= ~PB1;
-        }
-    else if(PBsArrIntPend & PB2){
-      state = state3;
-      PBsArrIntPend &= ~PB2;
-        }
-    else if(PBsArrIntPend & PB3){
-        state = state4;
-        PBsArrIntPend &= ~PB3;
-            }
-//---------------------------------------------------------------------
-//            Exit from a given LPM 
-//---------------------------------------------------------------------
-        switch(lpm_mode){
-        case mode0:
-         LPM0_EXIT; // must be called from ISR only
-         break;
-        case mode1:
-         LPM1_EXIT; // must be called from ISR only
-         break;
-        case mode2:
-         LPM2_EXIT; // must be called from ISR only
-         break;
-                case mode3:
-         LPM3_EXIT; // must be called from ISR only
-         break;
-                case mode4:
-         LPM4_EXIT; // must be called from ISR only
-         break;
-    }
-}
+//#pragma vector=PORT1_VECTOR
+//  __interrupt void PBs_handler(void){
+//
+//    delay(debounceVal);
+//    delay(15000); // For keypad debounce
+////---------------------------------------------------------------------
+////            selector of transition between states
+////---------------------------------------------------------------------
+//    if(PBsArrIntPend & PB0){
+//      state = state1;
+//      PBsArrIntPend &= ~PB0;
+//        }
+//        else if(PBsArrIntPend & PB1){
+//      state = state2;
+//      PBsArrIntPend &= ~PB1;
+//        }
+//    else if(PBsArrIntPend & PB2){
+//      state = state3;
+//      PBsArrIntPend &= ~PB2;
+//        }
+//    else if(PBsArrIntPend & PB3){
+//        state = state4;
+//        PBsArrIntPend &= ~PB3;
+//            }
+////---------------------------------------------------------------------
+////            Exit from a given LPM
+////---------------------------------------------------------------------
+//        switch(lpm_mode){
+//        case mode0:
+//         LPM0_EXIT; // must be called from ISR only
+//         break;
+//        case mode1:
+//         LPM1_EXIT; // must be called from ISR only
+//         break;
+//        case mode2:
+//         LPM2_EXIT; // must be called from ISR only
+//         break;
+//                case mode3:
+//         LPM3_EXIT; // must be called from ISR only
+//         break;
+//                case mode4:
+//         LPM4_EXIT; // must be called from ISR only
+//         break;
+//    }
+//}
 // //*********************************************************************
 // //             Start TimerB
 // //*********************************************************************
@@ -328,15 +333,6 @@ __interrupt void ADC10_ISR (void)
 //     // ACLK doesn't work on our msp, so we have to use smclk and divide the freq to get to 1 sec.
 //     __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
 // }
-//-------------------------------------------------------------------------------------
-//            Stop All Timers
-//-------------------------------------------------------------------------------------
-void StopAllTimers(void){
-    TACTL = MC_0 + TACLR; // halt timer A
-    TBCTL = MC_0 + TBCLR; // halt timer B
-    DMA0CTL &= ~DMAEN; // Stop DMA0
-    DMA1CTL &= ~DMAEN; // Stop DMA1
-}
 //*********************************************************************
 //                           TX ISR
 //*********************************************************************
@@ -383,9 +379,9 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
     }
     else if(UCA0RXBUF == '4' || delay_ifg){
         if (delay_ifg == 1){
-            string1[j] = UCA0RXBUF;
+            DelayString[j] = UCA0RXBUF;
             j++;
-            if (string1[j-1] == '\n'){
+            if (DelayString[j-1] == '\n'){
                 j = 0;
                 delay_ifg = 0;
                 state_flag = 0;
