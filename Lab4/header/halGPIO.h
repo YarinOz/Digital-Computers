@@ -22,6 +22,7 @@ extern void enterLPM(unsigned char);
 extern void enable_interrupts();
 extern void disable_interrupts();
 extern void timer_call_counter();
+extern void int2str(char *str, unsigned int num);
 
 
 

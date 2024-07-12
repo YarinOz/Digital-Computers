@@ -7,9 +7,6 @@ int colors[] = {0b000, 0b001, 0b010, 0b011, 0b100, 0b101, 0b110, 0b111};
 unsigned int count_up = 0;
 char count_up_str[5];
 unsigned int* count_up_address = &count_up;
-unsigned int count_down = 65535;
-char count_down_str[5];
-unsigned int* count_down_address = &count_down;
 const unsigned int resolution = 1024;
 const float v_ref = 3.40;
 float pot_meas;
@@ -19,7 +16,7 @@ char beforeDigit_str[1];
 //-------------------------------------------------------------
 //                1. Blink RGB
 //-------------------------------------------------------------
-void blinkRGB(){
+void RGBlink(){
     lcd_clear();
     unsigned int i = 0;
     while(state==state1){
@@ -40,7 +37,6 @@ void count_up_LCD(){
         int2str(count_up_str, *count_up_address);
         lcd_puts(count_up_str);
         timer_call_counter();
-
         *count_up_address = (*count_up_address + 1) % 65536;
     }
 }
@@ -69,29 +65,29 @@ void CircBuzzer() {
 //-------------------------------------------------------------
 //                4. Change Delay Time [ms]
 //------------------------------------------------------------
-void change_delay_time(){
+void XDelay(){
     delay_time = atoi(string1);  // Get delay time from user
-    state = state8;
+    state = state0;
 }
 //-------------------------------------------------------------
 //                5. Measure Pot voltage [v]
 //------------------------------------------------------------
-void measure_pot(){
+void PotentiometerMeas(){
     ADC_config();
     ADC10CTL0 |= ENC + ADC10SC;             // Start sampling
     __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
     ADC10CTL0 &= ~ADC10ON; // Don't get into interrupt
 
-    pot_meas = ( v_ref * ADC10MEM ) / resolution;
+    pot_meas = ( v_ref * ADC10MEM ) / resolution; // vref*[0-1]
 
     int ipart = (int)pot_meas;
 
     float fpart = pot_meas - (float)ipart;
 
     int afterdigit = (int) (fpart * 1000);
+    // example 2.86v-> ipart=2, fpart=0.86, afterdigit=860
 
     int2str(beforeDigit_str, ipart);
-
     int2str(afterDigit_str, afterdigit);
 
     lcd_clear();
@@ -104,7 +100,6 @@ void measure_pot(){
     lcd_puts(afterDigit_str);
     lcd_puts(" [v]");
     timer_call_counter();
-
 }
 
 //-------------------------------------------------------------
@@ -115,9 +110,6 @@ void clear_counters(){
     lcd_clear();
     lcd_home();
     count_up = 0;
-    count_down = 65535;
     enable_interrupts();
-    state = state8;
+    state = state0;
 }
-
-

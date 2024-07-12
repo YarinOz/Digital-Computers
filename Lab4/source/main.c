@@ -20,23 +20,23 @@ void main(void){
 	    __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
 	    break;
 	case state1: // Blink RGB LED
-	    blinkRGB();
+	    RGBlink();
 	    RGBArrPortOut = 0;
 	    break;
 	case state2: // Count up onto LCD
 	    count_up_LCD();
 	    break;
 
-	case state3: ; // Count down onto LCD
+	case state3: ; // Tone Buzzer
 	    CircBuzzer();
 		break;
 		
 	case state4: // Change Delay Time in ms
-	    change_delay_time();
+	    XDelay();
 		break;
 
     case state5: // Measure Potentiometer 3-digit value
-        measure_pot();
+        PotentiometerMeas();
         break;
 
     case state6: // Clear Counts and LCD

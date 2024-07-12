@@ -14,16 +14,15 @@ const unsigned int timer_half_sec = 65535;
 volatile int menu_index = 0; // Index to keep track of the current character in the menu string
 const char menu[] = "\n"
                     "-------------------------MENU-------------------------\n"
-                    "1. Blink RGB of love, color by color with delay of X[ms]\n"
+                    "1. Blink RGB LED, color by color with delay of X[ms]\n"
                     "2. Count up onto LCD screen with delay of X[ms]\n"
                     "3. Circular tone series via Buzzer with delay of X[ms]\n"
                     "4. Get delay time X[ms]:\n"
-                    "5. LDR 3-digit value [v] onto LCD\n"
+                    "5. Potentiometer 3-digit value [v] onto LCD\n"
                     "6. Clear LCD screen\n"
                     "7. Show menu\n"
                     "8. Sleep\n"
                     "------------------------------------------------------$";
-//const char menu[] = "hello";
 
 //--------------------------------------------------------------------
 //             System Configuration  
@@ -43,7 +42,6 @@ void sysConfig(void){
 void print2RGB(char ch){
     RGBArrPortOut = ch;
 } 
-
 //---------------------------------------------------------------------
 //            General Function
 //---------------------------------------------------------------------
@@ -57,7 +55,6 @@ void int2str(char *str, unsigned int num){
         len++;
         tmp /= 10;
     }
-
     // Print out the numbers in reverse
     for(j = len - 1; j >= 0; j--){
         str[j] = (num % 10) + '0';
@@ -302,7 +299,6 @@ __interrupt void ADC10_ISR (void)
 {
     __bic_SR_register_on_exit(CPUOFF);
 }
-
 //*********************************************************************
 //                           TX ISR
 //*********************************************************************
@@ -344,8 +340,6 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
             break;
         }
 }
-
-
 //*********************************************************************
 //                         RX ISR
 //*********************************************************************
@@ -360,15 +354,12 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
 {
     if(UCA0RXBUF == '1' && delay_ifg == 0){
         state = state1;
-//        IE2 |= UCA0TXIE;
     }
     else if(UCA0RXBUF == '2' && delay_ifg == 0){
         state = state2;
-//        IE2 |= UCA0TXIE;
     }
     else if(UCA0RXBUF == '3' && delay_ifg == 0){
         state = state3;
-//        IE2 |= UCA0TXIE;
     }
     else if(UCA0RXBUF == '4' || delay_ifg){
         if (delay_ifg == 1){
@@ -379,29 +370,23 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
                 delay_ifg = 0;
                 state_flag = 0;
                 state = state4;
-//                IE2 |= UCA0TXIE;        // Enable USCI_A0 TX interrupt
             }
         }
         else{
         delay_ifg = 1;
-//        IE2 |= UCA0TXIE;        // Enable USCI_A0 TX interrupt
         }
     }
     else if(UCA0RXBUF == '5' && delay_ifg == 0){
         state = state5;
-//        IE2 |= UCA0TXIE;
     }
     else if(UCA0RXBUF == '6' && delay_ifg == 0){
         state = state6;
-//        IE2 |= UCA0TXIE;
     }
     else if(UCA0RXBUF == '7' && delay_ifg == 0){
         state = state7;
-//        IE2 |= UCA0TXIE;                        // Enable USCI_A0 TX interrupt
     }
     else if(UCA0RXBUF == '8' && delay_ifg == 0){
         state = state8;
-//        IE2 |= UCA0TXIE;
     }
     else{
         state = state0;
