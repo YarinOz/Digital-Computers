@@ -3,18 +3,22 @@
 
 #include  "../header/halGPIO.h"     // private library - HAL layer
 
-extern unsigned int Xdelay;   // global variable
 
-extern void startTimerA0();
-extern void startTimerB();
-extern void StopAllTimers();
-extern void RGBlink();
-extern void LCDcount();
+extern void blinkRGB();
+extern void count_up_LCD();
+extern void count_down_LCD();
+extern void clear_counters();
+extern void measure_pot();
+extern void change_delay_time();
 extern void CircBuzzer();
-extern void GetDelay();
-extern void Pot2LCD();
-extern void ClearAll();
 
-// extern void RTLAB();
+
 
 #endif
+
+
+
+
+
+
+

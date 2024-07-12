@@ -1,40 +1,36 @@
 #ifndef _halGPIO_H_
 #define _halGPIO_H_
 
-#ifdef __MSP430FG4619__
-#include "../header/bsp_msp430x4xx.h" //lab kit
-#else
-#include "../header/bsp_msp430x2xx.h" //pesronal kit
-#endif
-#include  "../header/app.h"     // private library - APP layer
+#include  "../header/bsp.h"    		// private library - BSP layer
+#include  "../header/app.h"    		// private library - APP layer
+
 
 extern enum FSMstate state;   // global variable
 extern enum SYSmode lpm_mode; // global variable
-extern unsigned int Xdelay;   // global variable
-extern char DelayString[5];
+extern char string1[5];
+extern unsigned int delay_time;
 
 #define half_sec 500;
-#define clk_tmp 131; // convert ms to counter value
+#define clk_tmp 131; // ( (2^20) / 8 )*(10^-3) to convert ms to counter value for TACCR0
 
 extern void sysConfig(void);
-extern void SetByteToPort(char); // Added By RK
+extern void print2RGB(char);
+extern void SetByteToPort(char);
 extern void clrPortByte(char);
 extern void delay(unsigned int);
 extern void enterLPM(unsigned char);
 extern void enable_interrupts();
 extern void disable_interrupts();
-extern void printChar();
-extern void startTimerB();
-extern void startTimerA0();
-extern void GPIOconfig(void);
-extern void UART_init(void);
-extern void XmsDelay();
-extern void int2str(char *str, unsigned int num);
-extern void CH2RGB(char ch);
+extern void timer_call_counter();
+
+
 
 extern __interrupt void PBs_handler(void);
-extern __interrupt void keypadIRQ(void);
-extern __interrupt void DMA_ISR(void);
+extern __interrupt void PBs_handler_P2(void);
+extern __interrupt void Timer_A0(void);
+extern __interrupt void Timer_A1(void);
+extern __interrupt void USCI0RX_ISR(void);
+extern __interrupt void USCI0TX_ISR(void);
 
 #endif
 
@@ -59,6 +55,7 @@ extern __interrupt void DMA_ISR(void);
 #define LCD_RW_DIR(a)   (!a ? (P2DIR&=~0X80) : (P2DIR|=0X80)) // P2.7 pin direction
 
 #define LCD_DATA_OFFSET 0x04 //data pin selection offset for 4 bit mode, variable range is 0-4, default 0 - Px.0-3, no offset
+
 
 /*---------------------------------------------------------
   END CONFIG
@@ -97,3 +94,16 @@ extern void lcd_init();
 extern void lcd_strobe();
 extern void DelayMs(unsigned int);
 extern void DelayUs(unsigned int);
+/*
+ *  Delay functions for HI-TECH C on the PIC18
+ *
+ *  Functions available:
+ *      DelayUs(x)  Delay specified number of microseconds
+ *      DelayMs(x)  Delay specified number of milliseconds
+*/
+
+
+
+
+
+
