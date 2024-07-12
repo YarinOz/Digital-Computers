@@ -47,7 +47,14 @@ void main(void){
         IE2 |= UCA0TXIE;                      // Enable USCI_A0 TX interrupt
         __bis_SR_register(LPM0_bits + GIE);   // Enter LPM0
         break;
-		
+
+    case state8:
+        state=state0;
+        break;
+
+//    case state9: // RT
+//		//RT function
+//        break;
 	}
   }
 }

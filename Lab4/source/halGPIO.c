@@ -388,6 +388,9 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
     else if(UCA0RXBUF == '8' && delay_ifg == 0){
         state = state8;
     }
+//    else if(UCA0RXBUF == '9' && delay_ifg == 0){
+//            state = state9;
+//    }
     else{
         state = state0;
         IE2 |= UCA0TXIE;

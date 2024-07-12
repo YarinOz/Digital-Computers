@@ -21,7 +21,6 @@ void GPIOconfig(void){
   // Buzzer Setup
   BuzzPortDir |= 0x10;             // P2.4 Output compare - '1'
   BuzzPortSel |= 0x10;             // P2.4 Select = '1'
-//  BuzzPortSel &= ~BIT4;             // P2.4 Select = '1'
   BuzzPortOut &= ~0x10;             // P2.4 out = '0'
 
   _BIS_SR(GIE);                     // enable interrupts globally

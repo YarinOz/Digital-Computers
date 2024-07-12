@@ -7,18 +7,11 @@
 
 #define   debounceVal      10000
 
-
-//#define   LEDs_SHOW_RATE   0xFFFF  // 62_5ms
-
 // RGB abstraction
 #define RGBArrPortOut      P2OUT
 #define RGBArrPortDir      P2DIR
 #define RGBArrPortSEL      P2SEL
 
-// LEDs abstraction
-//#define LEDsArrPort        P1OUT
-//#define LEDsArrPortDir     P1DIR
-//#define LEDsArrPortSel     P1SEL
 
 // LCDs abstraction
 #define LCD_DATA_WRITE     P1OUT
@@ -27,21 +20,10 @@
 #define LCD_DATA_SEL       P1SEL
 #define LCD_CTL_SEL        P2SEL
 
-
 //   Buzzer abstraction
 #define BuzzPortSel        P2SEL
 #define BuzzPortDir        P2DIR
 #define BuzzPortOut        P2OUT
-
-
-//// PushButton 3 abstraction for Main Lab
-//#define PB3sArrPort         P2IN
-//#define PB3sArrIntPend      P2IFG
-//#define PB3sArrIntEn        P2IE
-//#define PB3sArrIntEdgeSel   P2IES
-//#define PB3sArrPortSel      P2SEL
-//#define PB3sArrPortDir      P2DIR
-//#define PB3sArrPortOut      P2OUT
 
 // PushButtons abstraction
 #define PBsArrPort	       P1IN
