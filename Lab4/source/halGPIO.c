@@ -269,8 +269,8 @@ void delay(unsigned int t){  //
 //---------------------------------------------------------------------
 //            selector of transition between states
 //---------------------------------------------------------------------
-    if(PBsArrIntPend & PB3){  // PB1
-      PBsArrIntPend &= ~PB3;
+    if(PBsArrIntPend & PB0){  // PB1
+      PBsArrIntPend &= ~PB0;
     }
 //---------------------------------------------------------------------
 //            Exit from a given LPM
@@ -360,7 +360,7 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
     }
     else if(state==state7){
         UCA0TXBUF = Love[Love_index];
-        if (Love_index == sizeof(Love)-2) {
+        if (Love_index == sizeof(Love)-1) {
             Love_index = 0; // Reset index if end of string is reached
             IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
             IE2 |= UCA0RXIE;                         // Enable USCI_A0 RX interrupt
@@ -369,23 +369,23 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
             Love_index++; // Increment index after checking the current character
         }
     }
-    switch(lpm_mode){
-        case mode0:
-            LPM0_EXIT; // must be called from ISR only
-            break;
-        case mode1:
-            LPM1_EXIT; // must be called from ISR only
-            break;
-        case mode2:
-            LPM2_EXIT; // must be called from ISR only
-            break;
-        case mode3:
-            LPM3_EXIT; // must be called from ISR only
-            break;
-        case mode4:
-            LPM4_EXIT; // must be called from ISR only
-            break;
-        }
+//    switch(lpm_mode){
+//        case mode0:
+//            LPM0_EXIT; // must be called from ISR only
+//            break;
+//        case mode1:
+//            LPM1_EXIT; // must be called from ISR only
+//            break;
+//        case mode2:
+//            LPM2_EXIT; // must be called from ISR only
+//            break;
+//        case mode3:
+//            LPM3_EXIT; // must be called from ISR only
+//            break;
+//        case mode4:
+//            LPM4_EXIT; // must be called from ISR only
+//            break;
+//        }
 }
 //*********************************************************************
 //                         RX ISR

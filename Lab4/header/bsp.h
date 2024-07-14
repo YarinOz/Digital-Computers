@@ -26,13 +26,13 @@
 #define BuzzPortOut        P2OUT
 
 // PushButtons abstraction
-#define PBsArrPort	       P2IN
-#define PBsArrIntPend	   P2IFG
-#define PBsArrIntEn	       P2IE
-#define PBsArrIntEdgeSel   P2IES
-#define PBsArrPortSel      P2SEL
-#define PBsArrPortDir      P2DIR
-#define PBsArrPortOut      P2OUT
+#define PBsArrPort	       P1IN
+#define PBsArrIntPend	   P1IFG
+#define PBsArrIntEn	       P1IE
+#define PBsArrIntEdgeSel   P1IES
+#define PBsArrPortSel      P1SEL
+#define PBsArrPortDir      P1DIR
+#define PBsArrPortOut      P1OUT
 #define PB0                0x01   // P1.0
 #define PB1                0x02  // P1.1
 #define PB2                0x04  // P1.2

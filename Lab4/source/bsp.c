@@ -24,14 +24,13 @@ void GPIOconfig(void){
   BuzzPortOut &= ~0x10;             // P2.4 out = '0'
 
   // PushButtons Setup
-   PBsArrPortSel &= ~0x01;           //
-   PBsArrPortOut &= ~0x01;            // Set P1Out to '0'
-   PBsArrPortDir &= ~0x01;            // P1.0-2 - Input ('0')
-   PBsArrPortDir |= 0x00;             // P1.3 - Output ('1')
-   PBsArrIntEdgeSel |= 0x01;          // pull-up mode   P1.0-P1.1 - '1'
-//   PBsArrIntEdgeSel &= ~0x0C;         // pull-down mode  P1.2 - '0'
-   PBsArrIntEn |= 0x01;               // P1.0-3 - '1'
-   PBsArrIntPend &= ~0x01;            // clear pending interrupts P1.0-P1.3 all P1
+  PBsArrPortSel &= ~0x01;           //
+//  PBsArrPortOut &= ~0x01;            // Set P2Out to '0'
+  PBsArrPortDir &= ~0x01;            // P2.1 - Input ('0')
+  PBsArrIntEdgeSel |= 0x30;         // pull-down mode  P2.1 - '0'
+  PBsArrIntEdgeSel &= ~0x04;         // pull-down mode  P2.1 - '0'
+  PBsArrIntEn |= 0x01;               // P1.0-2 - '1'
+  PBsArrIntPend &= ~0x01;            // clear pending interrupts P2.1
 
   _BIS_SR(GIE);                     // enable interrupts globally
 
@@ -89,11 +88,11 @@ void UART_init(void){
     BCSCTL1 = CALBC1_1MHZ;                    // Set DCO
     DCOCTL = CALDCO_1MHZ;
 
-    P2DIR |= 0xFF;                             // All P2.x outputs
-    P2OUT = 0;                                // All P2.x reset
+//    P2DIR |= 0xFF;                             // All P2.x outputs
+//    P2OUT = 0;                                // All P2.x reset
     P1SEL = BIT1 + BIT2 ;                     // P1.1 = RXD, P1.2=TXD
     P1SEL2 = BIT1 + BIT2 ;                     // P1.1 = RXD, P1.2=TXD
-    P1DIR |= RXLED + TXLED;
+//    P1DIR |= RXLED + TXLED;
     P1OUT &= 0x00;
 
     UCA0CTL1 |= UCSSEL_2;                     // CLK = SMCLK

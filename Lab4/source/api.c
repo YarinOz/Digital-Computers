@@ -117,10 +117,10 @@ void clear_counters(){
 //-------------------------------------------------------------
 //                 RT lab
 //------------------------------------------------------------
-void SendLove(){
-    while(state==state9 && active!=0){
-        // if in current state and active (PB1/PB2) follow with function
-        printf("RT debug in function");
-    }
-    state=state0;
-}
+//void SendLove(){
+//    while(state==state9 && active!=0){
+//        // if in current state and active (PB1/PB2) follow with function
+//        printf("RT debug in function");
+//    }
+//    state=state0;
+//}

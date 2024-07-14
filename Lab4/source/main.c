@@ -44,7 +44,7 @@ void main(void){
         break;
 
     case state7: // Print Menu to PC         SendLove();
-//        __bis_SR_register(LPM0_bits + GIE);   // Enter LPM0
+        __bis_SR_register(LPM0_bits + GIE);   // Enter LPM0
         IE2 |= UCA0TXIE;                      // Enable USCI_A0 TX interrupt
         __bis_SR_register(LPM0_bits + GIE);   // Enter LPM0
         break;

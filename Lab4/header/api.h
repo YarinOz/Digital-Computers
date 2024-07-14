@@ -13,7 +13,7 @@ extern void PotentiometerMeas();
 extern void XDelay();
 extern void CircBuzzer();
 extern void int2str(char *str, unsigned int num);
-extern void SendLove();
+//extern void SendLove();
 
 
 #endif
