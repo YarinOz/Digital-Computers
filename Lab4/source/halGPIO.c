@@ -20,10 +20,12 @@ const char menu[] = "\n"
                     "4. Get delay time X[ms]:\n"
                     "5. Potentiometer 3-digit value [v] onto LCD\n"
                     "6. Clear LCD screen\n"
-                    "7. Show menu\n"
-                    "8. Sleep\n"
+                    "7. On each PB1 pressed, send a Massage \"I love my Negev\"\n"
+                    "8. Show menu\n"
+                    "9. Sleep\n"
                     "------------------------------------------------------$";
-
+volatile int Love_index = 0; // Index to keep track of the current character in the menu string
+const char Love[] = "I love my Negev\n";
 //--------------------------------------------------------------------
 //             System Configuration  
 //--------------------------------------------------------------------
@@ -258,6 +260,40 @@ void delay(unsigned int t){  //
 //               Interrupt Services Routines
 //---------------**************************----------------------------
 //*********************************************************************
+//            Port1 Interrupt Service Routine
+//*********************************************************************
+#pragma vector=PORT1_VECTOR
+  __interrupt void PBs_handler(void){
+
+    delay(debounceVal);
+//---------------------------------------------------------------------
+//            selector of transition between states
+//---------------------------------------------------------------------
+    if(PBsArrIntPend & PB3){  // PB1
+      PBsArrIntPend &= ~PB3;
+    }
+//---------------------------------------------------------------------
+//            Exit from a given LPM
+//---------------------------------------------------------------------
+        switch(lpm_mode){
+        case mode0:
+         LPM0_EXIT; // must be called from ISR only
+         break;
+        case mode1:
+         LPM1_EXIT; // must be called from ISR only
+         break;
+        case mode2:
+         LPM2_EXIT; // must be called from ISR only
+         break;
+                case mode3:
+         LPM3_EXIT; // must be called from ISR only
+         break;
+                case mode4:
+         LPM4_EXIT; // must be called from ISR only
+         break;
+    }
+}
+//*********************************************************************
 //                        TIMER A0 ISR
 //*********************************************************************
 #pragma vector = TIMER0_A0_VECTOR // For delay
@@ -311,7 +347,7 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
 #error Compiler not supported!
 #endif
 {
-    if (state == state7) {
+    if (state == state8) {
         UCA0TXBUF = menu[menu_index];
         if (menu_index == sizeof(menu)-2) {
             menu_index = 0; // Reset index if end of string is reached
@@ -320,6 +356,17 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
             state=state0;
         } else {
             menu_index++; // Increment index after checking the current character
+        }
+    }
+    else if(state==state7){
+        UCA0TXBUF = Love[Love_index];
+        if (Love_index == sizeof(Love)-2) {
+            Love_index = 0; // Reset index if end of string is reached
+            IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
+            IE2 |= UCA0RXIE;                         // Enable USCI_A0 RX interrupt
+            state=state0;
+        } else {
+            Love_index++; // Increment index after checking the current character
         }
     }
     switch(lpm_mode){
@@ -388,9 +435,9 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
     else if(UCA0RXBUF == '8' && delay_ifg == 0){
         state = state8;
     }
-//    else if(UCA0RXBUF == '9' && delay_ifg == 0){
-//            state = state9;
-//    }
+    else if(UCA0RXBUF == '9' && delay_ifg == 0){
+            state = state9;
+    }
     else{
         state = state0;
         IE2 |= UCA0TXIE;

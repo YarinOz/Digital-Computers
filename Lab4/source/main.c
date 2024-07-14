@@ -9,7 +9,7 @@ enum SYSmode lpm_mode;
 
 void main(void){
   
-  state = state7;  // start in idle state on RESET
+  state = state8;  // start in idle state on RESET
   lpm_mode = mode0;     // start in idle state on RESET
   sysConfig();     // Configure GPIO, Stop Timers, Init LCD
 
@@ -43,18 +43,20 @@ void main(void){
         clear_counters();
         break;
 
-    case state7: // Print Menu to PC
+    case state7: // Print Menu to PC         SendLove();
+//        __bis_SR_register(LPM0_bits + GIE);   // Enter LPM0
         IE2 |= UCA0TXIE;                      // Enable USCI_A0 TX interrupt
         __bis_SR_register(LPM0_bits + GIE);   // Enter LPM0
         break;
 
     case state8:
-        state=state0;
+        IE2 |= UCA0TXIE;                      // Enable USCI_A0 TX interrupt
+        __bis_SR_register(LPM0_bits + GIE);   // Enter LPM0
         break;
 
-//    case state9: // RT
-//		//RT function
-//        break;
+    case state9:
+        state=state0;
+        break;
 	}
   }
 }

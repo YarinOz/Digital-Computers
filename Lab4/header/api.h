@@ -3,6 +3,7 @@
 
 #include  "../header/halGPIO.h"     // private library - HAL layer
 
+extern int active;
 
 extern void RGBlink();
 extern void count_up_LCD();
@@ -12,6 +13,7 @@ extern void PotentiometerMeas();
 extern void XDelay();
 extern void CircBuzzer();
 extern void int2str(char *str, unsigned int num);
+extern void SendLove();
 
 
 #endif

@@ -12,6 +12,7 @@ const float v_ref = 3.40;
 float pot_meas;
 char afterDigit_str[4];
 char beforeDigit_str[1];
+int active = 0;
 
 //-------------------------------------------------------------
 //                1. Blink RGB
@@ -112,4 +113,14 @@ void clear_counters(){
     count_up = 0;
     enable_interrupts();
     state = state0;
+}
+//-------------------------------------------------------------
+//                 RT lab
+//------------------------------------------------------------
+void SendLove(){
+    while(state==state9 && active!=0){
+        // if in current state and active (PB1/PB2) follow with function
+        printf("RT debug in function");
+    }
+    state=state0;
 }
