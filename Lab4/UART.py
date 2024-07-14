@@ -15,9 +15,11 @@ def receive_data(serial_comm):
 
 def transmit_data(serial_comm):
     global state
+    global PB
     if state:
         if state=='7':
-            # state='0'
+            time.sleep(5)
+            state = '8'
             return False
         state = input("Enter option: ")
         if 0 <= int(state) <= 9:
