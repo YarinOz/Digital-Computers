@@ -9,6 +9,7 @@ extern enum FSMstate state;   // global variable
 extern enum SYSmode lpm_mode; // global variable
 extern char string1[5];
 extern unsigned int delay_time;
+extern int active;
 
 #define half_sec 500;
 #define clk_tmp 131; // ( (2^20) / 8 )*(10^-3) to convert ms to counter value for TACCR0
@@ -22,6 +23,7 @@ extern void enterLPM(unsigned char);
 extern void enable_interrupts();
 extern void disable_interrupts();
 extern void timer_call_counter();
+extern void int2str(char *str, unsigned int num);
 
 
 

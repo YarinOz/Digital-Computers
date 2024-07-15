@@ -1,39 +1,51 @@
 #include  "../header/halGPIO.h"     // private library - HAL layer
-#define LCD_NEW_LINE   {lcd_cmd(0xC0);} // go to second line on the LCD
-#define LCD_CLEAR_LAST {lcd_cmd(0x10);} // move cursor left to clear last character
-// Global Variables
+#include "stdio.h"
 
-unsigned int Xdelay = 500; // 500 ms
-char DelayString[5]; 
+
+// Global Variables
+char string1[5];
 unsigned int i;
 int j=0;
 int delay_ifg = 0;
 int state_flag = 0;
-char menu[] = "                        Menu\n\
-        1. Blink RGB LED, color by color with delay of X[ms]\n\
-        2. Counting up onto LCD screen with delay of X[ms]\n\
-        3. Circular tone series via Buzzer with delay of X[ms]\n\
-        4. Get delay time X[ms]\n\
-        5. Potentiometer 3-digit value [v] onto LCD\n\
-        6. Clear LCD screen\n\
-        7. Show menu\n\
-        8. Sleep ";
+unsigned int delay_time = 500;
+const unsigned int timer_half_sec = 65535;
+
+volatile int menu_index = 0; // Index to keep track of the current character in the menu string
+const char menu[] = "\n"
+                    "-------------------------MENU-------------------------\n"
+                    "1. Blink RGB LED, color by color with delay of X[ms]\n"
+                    "2. Count up onto LCD screen with delay of X[ms]\n"
+                    "3. Circular tone series via Buzzer with delay of X[ms]\n"
+                    "4. Get delay time X[ms]:\n"
+                    "5. Potentiometer 3-digit value [v] onto LCD\n"
+                    "6. Clear LCD screen\n"
+                    "7. On each PB1 pressed, send a Massage \"I love my Negev\"\n"
+                    "8. Show menu\n"
+                    "9. Sleep\n"
+                    "------------------------------------------------------$";
+volatile int Love_index = 0; // Index to keep track of the current character in the menu string
+const char Love[] = "I love my Negev\n";
 //--------------------------------------------------------------------
 //             System Configuration  
 //--------------------------------------------------------------------
 void sysConfig(void){ 
-    GPIOconfig();
-    StopAllTimers();
+	GPIOconfig();
+//	StopAllTimers();
+	TIMER1_A1_config();
 	lcd_init();
 	lcd_clear();
-    UART_init();   
+	UART_init();
 }
+//--------------------------------------------------------------------
 //--------------------------------------------------------------------
 // 				Set Byte to Port
 //--------------------------------------------------------------------
-void CH2RGB(char ch){
+void print2RGB(char ch){
     RGBArrPortOut = ch;
 } 
+//---------------------------------------------------------------------
+//            General Function
 //---------------------------------------------------------------------
 //----------------------Int to String---------------------------------
 void int2str(char *str, unsigned int num){
@@ -45,7 +57,6 @@ void int2str(char *str, unsigned int num){
         len++;
         tmp /= 10;
     }
-
     // Print out the numbers in reverse
     for(j = len - 1; j >= 0; j--){
         str[j] = (num % 10) + '0';
@@ -54,60 +65,40 @@ void int2str(char *str, unsigned int num){
     strSize += len;
     str[strSize] = '\0';
 }
-//----------------------X [ms] delay---------------------------------
-void XmsDelay(){
-    unsigned int HalfCycle = (int) Xdelay / half_sec;
-    unsigned int res;
-     res = Xdelay % half_sec;
-     res = res * clk_tmp;
+//----------------------Count Timer Calls---------------------------------
+void timer_call_counter(){
 
-    for (i=0; i < HalfCycle; i++){
-        TIMER_A0_config(HalfCycle);
+    unsigned int num_of_halfSec;
+
+    num_of_halfSec = (int) delay_time / half_sec;
+    unsigned int res;
+    res = delay_time % half_sec;
+    res = res * clk_tmp;
+
+    for (i=0; i < num_of_halfSec; i++){
+        TIMER_A0_config(timer_half_sec);
         __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ int until Byte RXed
     }
 
-     if (res > 1000){
-         TIMER_A0_config(res);
-         __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ int until Byte RXed
-     }
+    if (res > 1000){
+        TIMER_A0_config(res);
+        __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ int until Byte RXed
+    }
 }
-void ShowMenu(){
-
-}
-//--------------------------------------------------------------------
-//              Set Byte to Port
-//--------------------------------------------------------------------
-void SetByteToPort(char ch){
-    PBsArrPortOut |= ch;
-} 
-//--------------------------------------------------------------------
-//              Clear Port Byte
-//--------------------------------------------------------------------
-void clrPortByte(char ch){
-    PBsArrPortOut &= ~ch;
-} 
-//---------------------------------------------------------------------
-//            Polling based Delay function
-//---------------------------------------------------------------------
-void delay(unsigned int t){  //
-    volatile unsigned int i;
-
-    for(i=t; i>0; i--);
-}  
 //---------------------------------------------------------------------
 //            Enter from LPM0 mode
 //---------------------------------------------------------------------
 void enterLPM(unsigned char LPM_level){
-    if (LPM_level == 0x00)
-      _BIS_SR(LPM0_bits);     /* Enter Low Power Mode 0 */
+	if (LPM_level == 0x00) 
+	  _BIS_SR(LPM0_bits);     /* Enter Low Power Mode 0 */
         else if(LPM_level == 0x01) 
-      _BIS_SR(LPM1_bits);     /* Enter Low Power Mode 1 */
+	  _BIS_SR(LPM1_bits);     /* Enter Low Power Mode 1 */
         else if(LPM_level == 0x02) 
-      _BIS_SR(LPM2_bits);     /* Enter Low Power Mode 2 */
-    else if(LPM_level == 0x03)
-      _BIS_SR(LPM3_bits);     /* Enter Low Power Mode 3 */
+	  _BIS_SR(LPM2_bits);     /* Enter Low Power Mode 2 */
+	else if(LPM_level == 0x03) 
+	  _BIS_SR(LPM3_bits);     /* Enter Low Power Mode 3 */
         else if(LPM_level == 0x04) 
-      _BIS_SR(LPM4_bits);     /* Enter Low Power Mode 4 */
+	  _BIS_SR(LPM4_bits);     /* Enter Low Power Mode 4 */
 }
 //---------------------------------------------------------------------
 //            Enable interrupts
@@ -121,6 +112,7 @@ void enable_interrupts(){
 void disable_interrupts(){
   _BIC_SR(GIE);
 }
+
 //---------------------------------------------------------------------
 //            LCD
 //---------------------------------------------------------------------
@@ -235,19 +227,71 @@ void lcd_strobe(){
  // asm("NOP");
   LCD_EN(0);
 }
+//---------------------------------------------------------------------
+//                     Polling delays
+//---------------------------------------------------------------------
 //******************************************************************
 // Delay usec functions
 //******************************************************************
 void DelayUs(unsigned int cnt){
+
     unsigned char i;
     for(i=cnt ; i>0 ; i--) asm("nop"); // tha command asm("nop") takes raphly 1usec
+
 }
 //******************************************************************
 // Delay msec functions
 //******************************************************************
 void DelayMs(unsigned int cnt){
+
     unsigned char i;
     for(i=cnt ; i>0 ; i--) DelayUs(1000); // tha command asm("nop") takes raphly 1usec
+
+}
+//******************************************************************
+//            Polling based Delay function
+//******************************************************************
+void delay(unsigned int t){  //
+    volatile unsigned int i;
+
+    for(i=t; i>0; i--);
+}
+//---------------**************************----------------------------
+//               Interrupt Services Routines
+//---------------**************************----------------------------
+//*********************************************************************
+//            Port1 Interrupt Service Routine
+//*********************************************************************
+#pragma vector=PORT1_VECTOR
+  __interrupt void PBs_handler(void){
+
+    delay(debounceVal);
+//---------------------------------------------------------------------
+//            selector of transition between states
+//---------------------------------------------------------------------
+    if(PBsArrIntPend & PB0){  // PB1
+      PBsArrIntPend &= ~PB0;
+    }
+//---------------------------------------------------------------------
+//            Exit from a given LPM
+//---------------------------------------------------------------------
+        switch(lpm_mode){
+        case mode0:
+         LPM0_EXIT; // must be called from ISR only
+         break;
+        case mode1:
+         LPM1_EXIT; // must be called from ISR only
+         break;
+        case mode2:
+         LPM2_EXIT; // must be called from ISR only
+         break;
+                case mode3:
+         LPM3_EXIT; // must be called from ISR only
+         break;
+                case mode4:
+         LPM4_EXIT; // must be called from ISR only
+         break;
+    }
 }
 //*********************************************************************
 //                        TIMER A0 ISR
@@ -259,6 +303,31 @@ __interrupt void TimerA_ISR (void)
     LPM0_EXIT;
 }
 //*********************************************************************
+//            TimerA1 Interrupt Service Routine
+//*********************************************************************
+#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+#pragma vector = TIMER1_A1_VECTOR
+__interrupt void TIMER1_A1_ISR(void)
+#elif defined(__GNUC__)
+void __attribute__ ((interrupt(TIMER1_A1_VECTOR))) TIMER1_A1_ISR (void)
+#else
+#error Compiler not supported!
+#endif
+{
+  switch(__even_in_range(TA1IV, 0x0A))
+  {
+      case  TA1IV_NONE: break;              // Vector  0:  No interrupt
+      case  TA1IV_TACCR1:                   // Vector  2:  TACCR1 CCIFG
+          TA1CTL &= ~(TAIFG);
+        break;
+      case TA1IV_TACCR2: break;
+      case TA1IV_6: break;                  // Vector  6:  Reserved CCIFG
+      case TA1IV_8: break;                  // Vector  8:  Reserved CCIFG
+      case TA1IV_TAIFG: break;              // Vector 10:  TAIFG
+      default:  break;
+  }
+}
+//*********************************************************************
 //                         ADC10 ISR
 //*********************************************************************
 #pragma vector = ADC10_VECTOR
@@ -266,73 +335,6 @@ __interrupt void ADC10_ISR (void)
 {
     __bic_SR_register_on_exit(CPUOFF);
 }
-//*********************************************************************
-//            Port1 Interrupt Service Routine
-//*********************************************************************
-//#pragma vector=PORT1_VECTOR
-//  __interrupt void PBs_handler(void){
-//
-//    delay(debounceVal);
-//    delay(15000); // For keypad debounce
-////---------------------------------------------------------------------
-////            selector of transition between states
-////---------------------------------------------------------------------
-//    if(PBsArrIntPend & PB0){
-//      state = state1;
-//      PBsArrIntPend &= ~PB0;
-//        }
-//        else if(PBsArrIntPend & PB1){
-//      state = state2;
-//      PBsArrIntPend &= ~PB1;
-//        }
-//    else if(PBsArrIntPend & PB2){
-//      state = state3;
-//      PBsArrIntPend &= ~PB2;
-//        }
-//    else if(PBsArrIntPend & PB3){
-//        state = state4;
-//        PBsArrIntPend &= ~PB3;
-//            }
-////---------------------------------------------------------------------
-////            Exit from a given LPM
-////---------------------------------------------------------------------
-//        switch(lpm_mode){
-//        case mode0:
-//         LPM0_EXIT; // must be called from ISR only
-//         break;
-//        case mode1:
-//         LPM1_EXIT; // must be called from ISR only
-//         break;
-//        case mode2:
-//         LPM2_EXIT; // must be called from ISR only
-//         break;
-//                case mode3:
-//         LPM3_EXIT; // must be called from ISR only
-//         break;
-//                case mode4:
-//         LPM4_EXIT; // must be called from ISR only
-//         break;
-//    }
-//}
-// //*********************************************************************
-// //             Start TimerB
-// //*********************************************************************
-// void startTimerB(void){
-//     TB0CCTL0 = CCIE; // CCR0 interrupt enabled
-//     TB0CCR2 = 0xFFFF; // 
-//     TB0CTL = TBSSEL_2 + MC_2 + ID_3 + TBCLR; // ACLK, upmode, clear TAR
-//     __bis_SR_register(GIE); // Enter LPM0
-// }
-// //-------------------------------------------------------------
-// //              StartTimer For StopWatch
-// //-------------------------------------------------------------
-// void startTimerA0(){
-//     TA0CCTL0 = CCIE;  // CCR0 interrupt enabled
-//     TACCR0 = 0xFFFF;  // Timer Cycles - max
-//     TA0CTL = TASSEL_2 + MC_3 + ID_3;  //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
-//     // ACLK doesn't work on our msp, so we have to use smclk and divide the freq to get to 1 sec.
-//     __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
-// }
 //*********************************************************************
 //                           TX ISR
 //*********************************************************************
@@ -345,14 +347,46 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
 #error Compiler not supported!
 #endif
 {
-    if(state == state8) UCA0TXBUF = '8'; //print menu in PC
-    else if (state == state7) UCA0TXBUF = '7';
-    else if (delay_ifg) UCA0TXBUF = '4';
-    else UCA0TXBUF = 'F';   // Finish
-    IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
+    if (state == state8) {
+        UCA0TXBUF = menu[menu_index];
+        if (menu_index == sizeof(menu)-2) {
+            menu_index = 0; // Reset index if end of string is reached
+            IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
+            IE2 |= UCA0RXIE;                         // Enable USCI_A0 RX interrupt
+            state=state0;
+        } else {
+            menu_index++; // Increment index after checking the current character
+        }
+    }
+    else if(state==state7){
+        UCA0TXBUF = Love[Love_index];
+        if (Love_index == sizeof(Love)-1) {
+            Love_index = 0; // Reset index if end of string is reached
+            IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
+            IE2 |= UCA0RXIE;                         // Enable USCI_A0 RX interrupt
+            state=state0;
+        } else {
+            Love_index++; // Increment index after checking the current character
+        }
+    }
+//    switch(lpm_mode){
+//        case mode0:
+//            LPM0_EXIT; // must be called from ISR only
+//            break;
+//        case mode1:
+//            LPM1_EXIT; // must be called from ISR only
+//            break;
+//        case mode2:
+//            LPM2_EXIT; // must be called from ISR only
+//            break;
+//        case mode3:
+//            LPM3_EXIT; // must be called from ISR only
+//            break;
+//        case mode4:
+//            LPM4_EXIT; // must be called from ISR only
+//            break;
+//        }
 }
-
-
 //*********************************************************************
 //                         RX ISR
 //*********************************************************************
@@ -367,47 +401,46 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
 {
     if(UCA0RXBUF == '1' && delay_ifg == 0){
         state = state1;
-        IE2 |= UCA0TXIE;
     }
     else if(UCA0RXBUF == '2' && delay_ifg == 0){
         state = state2;
-        IE2 |= UCA0TXIE;
     }
     else if(UCA0RXBUF == '3' && delay_ifg == 0){
         state = state3;
-        IE2 |= UCA0TXIE;
     }
     else if(UCA0RXBUF == '4' || delay_ifg){
         if (delay_ifg == 1){
-            DelayString[j] = UCA0RXBUF;
+            string1[j] = UCA0RXBUF;
             j++;
-            if (DelayString[j-1] == '\n'){
+            if (string1[j-1] == '\n'){
                 j = 0;
                 delay_ifg = 0;
                 state_flag = 0;
                 state = state4;
-                IE2 |= UCA0TXIE;        // Enable USCI_A0 TX interrupt
             }
         }
         else{
         delay_ifg = 1;
-        IE2 |= UCA0TXIE;        // Enable USCI_A0 TX interrupt
         }
     }
     else if(UCA0RXBUF == '5' && delay_ifg == 0){
         state = state5;
-        IE2 |= UCA0TXIE;
     }
     else if(UCA0RXBUF == '6' && delay_ifg == 0){
         state = state6;
-        IE2 |= UCA0TXIE;
     }
-    else if(UCA0RXBUF == '7' && delay_ifg == 0){ //RealTime
+    else if(UCA0RXBUF == '7' && delay_ifg == 0){
         state = state7;
     }
     else if(UCA0RXBUF == '8' && delay_ifg == 0){
         state = state8;
-        IE2 |= UCA0TXIE;                        // Enable USCI_A0 TX interrupt
+    }
+    else if(UCA0RXBUF == '9' && delay_ifg == 0){
+            state = state9;
+    }
+    else{
+        state = state0;
+        IE2 |= UCA0TXIE;
     }
 
     switch(lpm_mode){
@@ -428,4 +461,3 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
         break;
     }
 }
-

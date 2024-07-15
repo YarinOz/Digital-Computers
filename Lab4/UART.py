@@ -1,23 +1,28 @@
 import serial as ser
 import time
 
-state = '7'
+state = '8'
 
 def receive_data(serial_comm):
     global state
     enableTX = False
     if serial_comm.in_waiting > 0:
         received_char = serial_comm.read_until(b'$').decode("ascii").strip()
-        print(f"Received: {received_char}")
+        print(received_char)
         enableTX = True  # Enable TX after receiving data
         time.sleep(0.25)
     return enableTX
 
 def transmit_data(serial_comm):
     global state
+    global PB
     if state:
+        if state=='7':
+            time.sleep(5)
+            state = '8'
+            return False
         state = input("Enter option: ")
-        if 0 <= int(state) <= 8:
+        if 0 <= int(state) <= 9:
             serial_comm.write(bytes(state, 'ascii'))
             time.sleep(0.25)
             if state == '4':
