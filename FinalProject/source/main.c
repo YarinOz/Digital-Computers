@@ -19,9 +19,9 @@ void main(void){
 	case state0: //idle
 	    __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
 	    break;
-	case state1: // Blink RGB LED
-	    blinkRGB();
-	    RGBArrPortOut = 0;
+	case state1: // Analog Joystick manual Stepper motor control
+        IE2 |= UCA0RXIE;                      // Enable USCI_A0 RX interrupt
+        __bis_SR_register(LPM0_bits + GIE);   // Enter LPM0
 	    break;
 	case state2: // Count up onto LCD
 	    count_up_LCD();
