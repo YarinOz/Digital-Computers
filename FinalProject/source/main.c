@@ -23,12 +23,13 @@ void main(void){
         IE2 |= UCA0RXIE;                      // Enable USCI_A0 RX interrupt
         __bis_SR_register(LPM0_bits + GIE);   // Enter LPM0
 	    break;
-	case state2: // Count up onto LCD
-	    count_up_LCD();
+	case state2: // Analog Joystick Paint
+	    // Paint with Joystick in 3 modes (switched by analog click button):
+		// 1. write, 2. erase, 3. neutral
 	    break;
 
-	case state3: ; // Count down onto LCD
-	    CircBuzzer();
+	case state3: ; // Stepper motor calibration
+	    // calibrate stepper motor to 0 degrees
 		break;
 		
 	case state4: // Change Delay Time in ms
