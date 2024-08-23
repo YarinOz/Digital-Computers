@@ -104,10 +104,23 @@ def ComGUI():
 
     main_window.mainloop()
 
+# Automatic PORT search
+def port_search(between=None):
+    # find the right com that connect between the pc and controller
+    ports = serial.tools.list_ports.comports()
+    for desc in sorted(ports):
+        if "MSP430" in desc.description:
+            return desc.device
+    raise PortError
+
 def start_communication():
+    # Automatic port search (can be used to find the right port, change COM19 with the port)
+    # port = port_search()
     # serial_comm = ser.Serial('COM19', baudrate=9600, bytesize=ser.EIGHTBITS,
     #                          parity=ser.PARITY_NONE, stopbits=ser.STOPBITS_ONE,
     #                          timeout=1)
+    # serial_comm.flush() # Flush input/output buffer
+    # serial_comm.set_buffer_size(rx_size=1024, tx_size=1024)
     # serial_comm.reset_input_buffer()
     # serial_comm.reset_output_buffer()
 
