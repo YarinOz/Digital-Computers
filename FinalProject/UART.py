@@ -1,3 +1,7 @@
+# warning occurs in macos, comment in windows/linux
+import os
+os.environ['TK_SILENCE_DEPRECATION'] = '1'
+
 import serial as ser
 import time
 import tkinter as tk
