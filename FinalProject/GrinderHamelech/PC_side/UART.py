@@ -4,6 +4,7 @@ import os
 import serial as ser
 import serial.tools.list_ports
 import binascii
+import threading
 
 
 class Paint:
@@ -15,6 +16,7 @@ class Paint:
 
     def __init__(self, master):
         self.master = master
+        # self.serial_comm = serial_comm  # Pass the serial communication object
         self.top = tk.Toplevel(master)
         self.top.title("Painter")
         self.top.geometry("800x600")
@@ -34,7 +36,11 @@ class Paint:
         self.c = tk.Canvas(self.top, bg='white', width=600, height=400)
         self.c.grid(row=1, columnspan=5, padx=5, pady=5)
 
+        PaintActive = 1
+        # send_state('P')  # Painter
+
         self.setup()
+        # self.read_state_from_serial()
 
     def setup(self):
         self.old_x = None
@@ -46,13 +52,12 @@ class Paint:
         # Bind the mouse movement to the mouse_move method
         self.c.bind('<Motion>', self.mouse_move)
 
-        # Periodically check the state
         self.update_state()
 
     def update_state(self):
         global pstate
         # pstate = self.read_state_from_serial()  # Read the state from the serial port
-        pstate = 2
+        pstate=0
         if pstate == self.STATE_PEN:
             self.eraser_on = False
             self.color = self.DEFAULT_COLOR
@@ -65,13 +70,17 @@ class Paint:
 
     def read_state_from_serial(self):
         # Read state from serial communication
-        try:
-            if serial_comm.in_waiting > 0:
-                pstate = serial_comm.readline().decode('utf-8').strip()
-                return pstate
-        except Exception as e:
-            print(f"Error reading from serial: {e}")
-        return self.STATE_NEUTRAL
+        def worker():
+            try:
+                while True:
+                    if serial_comm.in_waiting > 0:
+                        pstate = serial_comm.readline().decode('utf-8').strip()
+                        return int(pstate)
+            except Exception as e:
+                print(f"Error reading from serial: {e}")
+                return self.STATE_NEUTRAL
+        thread = threading.Thread(target=worker, daemon=True)
+        thread.start()
 
     def mouse_move(self, event):
         if pstate != 2 and self.old_x is not None and self.old_y is not None:
@@ -129,6 +138,9 @@ class ScriptMode:
         # Add a "Back" button
         self.back_button = ttk.Button(self.top, text="Back", command=self.close_script_mode)
         self.back_button.grid(row=4, column=1, padx=10, pady=10)
+        
+        burn_index = 0
+        # send_state('s')  # Send script stepper state
 
     def select_file(self):
         file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
@@ -184,16 +196,36 @@ class CalibrationMode:
         self.stop_button = ttk.Button(self.top, text="Stop Calibration", command=self.stop_calibration)
         self.stop_button.pack(pady=5)
 
+        self.counter_label = ttk.Label(self.top, text="Counter: N/A")
+        self.counter_label.pack(pady=5)
+
+        self.phi_label = ttk.Label(self.top, text="Phi: N/A [deg]")
+        self.phi_label.pack(pady=5)
+
         self.back_button = ttk.Button(self.top, text="Back", command=self.close_calibration)
         self.back_button.pack(pady=5)
+
+        send_state("C") # Send calibration stepper state
 
     def start_calibration(self):
         # Placeholder for actual calibration logic
         print("Starting calibration...")
+        send_state("A")
 
     def stop_calibration(self):
         # Placeholder for actual calibration logic
         print("Stopping calibration...")
+        send_state("M")
+        while True:
+            while serial_comm.in_waiting > 0:  # while the input buffer isn't empty
+                counter = serial_comm.readline().decode('utf-8')
+            break
+
+        phi = int(counter.split('\x00')[0]) / 360
+
+        # Update the labels with the counter and phi values
+        self.counter_label.config(text=f"Counter: {counter.strip()}")
+        self.phi_label.config(text=f"Phi: {round(phi, 4)} [deg]")
 
     def close_calibration(self):
         self.top.destroy()
@@ -238,18 +270,23 @@ class ManualControl:
 
         self.joystick_mode = False
 
+        send_state("m") # Send manual stepper state
+
     def start_motor(self):
         # Placeholder for starting motor logic
         print("Motor started.")
+        send_state("A")
 
     def stop_motor(self):
         # Placeholder for stopping motor logic
         print("Motor stopped.")
+        send_state("M")
 
     def toggle_joystick_mode(self):
         # Toggle joystick mode
         self.joystick_mode = not self.joystick_mode
         print(f"Joystick Mode {'enabled' if self.joystick_mode else 'disabled'}.")
+        send_state("J")
 
     def close_manual_control(self):
         self.top.destroy()
@@ -337,7 +374,10 @@ def message_handler(message=None, FSM=False, file=False):
     serial_comm.write(bytesChar)
     print(f"cp send: {message}")
 #----------------------------------------------------------------------------------------------------#
-
+# Serial Communication UART initialization
+class PortError(Exception):
+    """Raised when the port not found"""
+    pass
 
 class MainApp:
     def __init__(self, root):
@@ -346,6 +386,9 @@ class MainApp:
         self.root.geometry("400x300")
 
         self.center_window(self.root, 400, 300)
+
+        # Initialize serial communication
+        # self.serial_comm = self.initialize_serial_comm()
 
         # Style
         self.style = ttk.Style()
@@ -372,6 +415,29 @@ class MainApp:
         self.script_button = ttk.Button(self.main_frame, text="Script Mode", command=self.show_script)
         self.script_button.pack(pady=5)
 
+    def port_search(between=None):
+        # find the right com that connect between the pc and controller
+        ports = serial.tools.list_ports.comports()
+        for desc in sorted(ports):
+            if "MSP430" in desc.description:
+                return desc.device
+        raise PortError
+
+    def initialize_serial_comm(self):
+        try:
+            port = port_search()
+            serial_comm = ser.Serial(port, baudrate=9600, bytesize=ser.EIGHTBITS,
+                                        parity=ser.PARITY_NONE, stopbits=ser.STOPBITS_ONE,
+                                        timeout=1)
+            serial_comm.flush()  # Flush input/output buffer
+            serial_comm.set_buffer_size(rx_size=1024, tx_size=1024)
+            serial_comm.reset_input_buffer()
+            serial_comm.reset_output_buffer()
+            return serial_comm
+        except PortError:
+            messagebox.showerror("Port Error", "MSP430 Port not found.")
+            self.root.quit()
+    
     def show_manual(self):
         ManualControl(self.root)
 
@@ -392,32 +458,7 @@ class MainApp:
         window.geometry(f"{width}x{height}+{x}+{y}")
 
 
-# Automatic PORT search
-class PortError(Exception):
-    """Raised when the port not found"""
-    pass
-
-
-def port_search(between=None):
-    # find the right com that connect between the pc and controller
-    ports = serial.tools.list_ports.comports()
-    for desc in sorted(ports):
-        if "MSP430" in desc.description:
-            return desc.device
-    raise PortError
-
-
 if __name__ == '__main__':
-    # Automatic port search
-    port = port_search()
-    serial_comm = ser.Serial(port, baudrate=9600, bytesize=ser.EIGHTBITS,
-                             parity=ser.PARITY_NONE, stopbits=ser.STOPBITS_ONE,
-                             timeout=1)
-    serial_comm.flush() # Flush input/output buffer
-    serial_comm.set_buffer_size(rx_size=1024, tx_size=1024)
-    serial_comm.reset_input_buffer()
-    serial_comm.reset_output_buffer()
-
     root = tk.Tk()
     app = MainApp(root)
     root.mainloop()

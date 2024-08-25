@@ -488,10 +488,10 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
 
 
     // If's for states
-    if (stringFromPC[0] == 'm') {state = state0; stateStepp=stateDefault; rotateIFG = 0; j = 0;}
-    else if (stringFromPC[0] == 'P') { state = state1; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  //Was p
-    else if (stringFromPC[0] == 'C') { state = state2; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  //Was c
-    else if (stringFromPC[0] == 's') { state = state3; stateStepp=stateDefault; rotateIFG = 0; j = 0;}
+    if (stringFromPC[0] == 'm') {state = state0; stateStepp=stateDefault; rotateIFG = 0; j = 0;}    // manual
+    else if (stringFromPC[0] == 'P') { state = state1; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  // paint
+    else if (stringFromPC[0] == 'C') { state = state2; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  // calibrate
+    else if (stringFromPC[0] == 's') { state = state3; stateStepp=stateDefault; rotateIFG = 0; j = 0;} // script
 
     else if (stringFromPC[0] == 'A'){ stateStepp = stateAutoRotate; rotateIFG = 1; j = 0;}// Auto Rotate
     else if (stringFromPC[0] == 'M'){ stateStepp = stateStopRotate; rotateIFG = 0; j = 0;}// Stop Rotate
