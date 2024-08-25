@@ -1,11 +1,17 @@
 import tkinter as tk
 from tkinter import colorchooser, filedialog, messagebox, ttk
 import os
+import serial as ser
+import serial.tools.list_ports
+import binascii
 
 
 class Paint:
     DEFAULT_PEN_SIZE = 5.0
     DEFAULT_COLOR = 'black'
+    STATE_PEN = 0
+    STATE_ERASE = 1
+    STATE_NEUTRAL = 2
 
     def __init__(self, master):
         self.master = master
@@ -17,23 +23,13 @@ class Paint:
 
         # Style
         self.style = ttk.Style()
-        self.style.configure('TButton', font=('Arial', 12), padding=6, background='#4CAF50', foreground='white')
-        self.style.configure('TScale', font=('Arial', 12))
-        self.style.configure('TLabel', font=('Arial', 12))
-
-        # Use standard tk.Button instead of ttk.Button
-        self.pen_button = tk.Button(self.top, text='Pen', command=self.use_pen, relief=tk.RAISED)
-        self.pen_button.grid(row=0, column=0, padx=5, pady=5)
-
-        self.eraser_button = tk.Button(self.top, text='Erase', command=self.use_eraser, relief=tk.RAISED)
-        self.eraser_button.grid(row=0, column=1, padx=5, pady=5)
-
-        self.brush_button = tk.Button(self.top, text='Back', command=self.close_painter, relief=tk.RAISED)
-        self.brush_button.grid(row=0, column=3, padx=5, pady=5)
+        self.style.configure('TButton', font=('Helvetica', 12), padding=6, background='#4CAF50', foreground='black')
+        self.style.configure('TScale', font=('Helvetica', 12))
+        self.style.configure('TLabel', font=('Helvetica', 12))
 
         self.choose_size_button = ttk.Scale(self.top, from_=1, to=20, orient=tk.HORIZONTAL)
         self.choose_size_button.set(5)
-        self.choose_size_button.grid(row=0, column=4, padx=5, pady=5)
+        self.choose_size_button.grid(row=0, column=0, padx=5, pady=5)
 
         self.c = tk.Canvas(self.top, bg='white', width=600, height=400)
         self.c.grid(row=1, columnspan=5, padx=5, pady=5)
@@ -46,25 +42,40 @@ class Paint:
         self.line_width = self.choose_size_button.get()
         self.color = self.DEFAULT_COLOR
         self.eraser_on = False
-        self.active_button = self.pen_button
-        self.c.bind('<B1-Motion>', self.paint)
-        self.c.bind('<ButtonRelease-1>', self.reset)
 
-    def use_pen(self):
-        self.activate_button(self.pen_button)
+        # Bind the mouse movement to the mouse_move method
+        self.c.bind('<Motion>', self.mouse_move)
 
-    def use_eraser(self):
-        self.activate_button(self.eraser_button, eraser_mode=True)
+        # Periodically check the state
+        self.update_state()
 
-    def activate_button(self, some_button, eraser_mode=False):
-        self.active_button.config(relief=tk.RAISED)
-        some_button.config(relief=tk.SUNKEN)
-        self.active_button = some_button
-        self.eraser_on = eraser_mode
+    def update_state(self):
+        global pstate
+        # pstate = self.read_state_from_serial()  # Read the state from the serial port
+        pstate = 2
+        if pstate == self.STATE_PEN:
+            self.eraser_on = False
+            self.color = self.DEFAULT_COLOR
+        elif pstate == self.STATE_ERASE:
+            self.eraser_on = True
+            self.color = 'white'
+        else:
+            self.eraser_on = False
+        self.master.after(100, self.update_state)  # Check every 100ms
 
-    def paint(self, event):
-        paint_color = 'white' if self.eraser_on else self.color
-        if self.old_x and self.old_y:
+    def read_state_from_serial(self):
+        # Read state from serial communication
+        try:
+            if serial_comm.in_waiting > 0:
+                pstate = serial_comm.readline().decode('utf-8').strip()
+                return pstate
+        except Exception as e:
+            print(f"Error reading from serial: {e}")
+        return self.STATE_NEUTRAL
+
+    def mouse_move(self, event):
+        if pstate != 2 and self.old_x is not None and self.old_y is not None:
+            paint_color = 'white' if self.eraser_on else self.color
             self.c.create_line(self.old_x, self.old_y, event.x, event.y,
                                width=self.line_width, fill=paint_color,
                                capstyle=tk.ROUND, smooth=tk.TRUE)
@@ -96,8 +107,8 @@ class ScriptMode:
 
         # Style
         self.style = ttk.Style()
-        self.style.configure('TButton', font=('Arial', 12), padding=6, background='#4CAF50', foreground='white')
-        self.style.configure('TLabel', font=('Arial', 12))
+        self.style.configure('TButton', font=('Helvetica', 12), padding=6, background='#4CAF50', foreground='black')
+        self.style.configure('TLabel', font=('Helvetica', 12))
 
         # Layout
         self.file_listbox = tk.Listbox(self.top, width=50)
@@ -160,11 +171,11 @@ class CalibrationMode:
 
         # Style
         self.style = ttk.Style()
-        self.style.configure('TButton', font=('Arial', 12), padding=6, background='#4CAF50', foreground='white')
-        self.style.configure('TLabel', font=('Arial', 12))
+        self.style.configure('TButton', font=('Helvetica', 12), padding=6, background='#4CAF50', foreground='black')
+        self.style.configure('TLabel', font=('Helvetica', 12))
 
         # Layout
-        self.label = ttk.Label(self.top, text="Stepper Motor Calibration", font=('Arial', 14))
+        self.label = ttk.Label(self.top, text="Stepper Motor Calibration", font=('Helvetica', 14))
         self.label.pack(pady=10)
 
         self.start_button = ttk.Button(self.top, text="Start Calibration", command=self.start_calibration)
@@ -206,11 +217,11 @@ class ManualControl:
 
         # Style
         self.style = ttk.Style()
-        self.style.configure('TButton', font=('Arial', 12), padding=6, background='#4CAF50', foreground='white')
-        self.style.configure('TLabel', font=('Arial', 12))
+        self.style.configure('TButton', font=('Helvetica', 12), padding=6, background='#4CAF50', foreground='black')
+        self.style.configure('TLabel', font=('Helvetica', 12))
 
         # Layout
-        self.label = ttk.Label(self.top, text="Manual Control of Motor-Based Machine", font=('Arial', 14))
+        self.label = ttk.Label(self.top, text="Manual Control of Motor-Based Machine", font=('Helvetica', 14))
         self.label.pack(pady=10)
 
         self.start_button = ttk.Button(self.top, text="Start Motor", command=self.start_motor)
@@ -251,6 +262,45 @@ class ManualControl:
         window.geometry(f"{width}x{height}+{x}+{y}")
 
 
+# Communication
+def send_state(message=None, file_option=False):
+    serial_comm.reset_output_buffer()
+    if file_option:
+        bytesMenu = message
+    else:
+        bytesMenu = bytes(message, 'ascii')
+    serial_comm.write(bytesMenu)
+
+
+def read_from_MSP(state, size):
+    n = 4
+    while True:
+        while serial_comm.in_waiting > 0:  # while the input buffer isn't empty
+            if state == 'Painter':
+                message = serial_comm.read(size=size)  # at Painter size = 6
+                message = binascii.hexlify(message).decode('utf-8')
+                message_split = "".join([message[x:x + 2] for x in range(0, len(message), 2)][::-1])
+                final_message = [message_split[i:i + n] for i in range(0, len(message_split), n)]
+            elif state == 'script':
+                #        try:
+                final_message = serial_comm.read(size=size).decode('utf-8')  # at Painter size = 4
+            #        except:
+            #           final_message = s.read()
+            #           print(final_message)
+            #           print("error")
+            # final_message = s.readline().decode('utf-8')
+            else:
+                final_message = serial_comm.readline().decode('utf-8')
+                # final_message = s.readline()
+                # int(binascii.hexlify(message), 16)
+                # int((final_message[0]), 16) - convert hex to int
+
+            #  print(final_message)
+            return final_message
+    # except:
+    #
+    # return "Error"
+
 class MainApp:
     def __init__(self, root):
         self.root = root
@@ -261,7 +311,7 @@ class MainApp:
 
         # Style
         self.style = ttk.Style()
-        self.style.configure('TButton', font=('Arial', 12), padding=6, background='#4CAF50', foreground='white')
+        self.style.configure('TButton', font=('Helvetica', 12), padding=6, background='#4CAF50', foreground='black')
         self.style.configure('TLabel', font=('Verdana', 15))
 
         # Main layout
@@ -304,7 +354,32 @@ class MainApp:
         window.geometry(f"{width}x{height}+{x}+{y}")
 
 
+# Automatic PORT search
+class PortError(Exception):
+    """Raised when the port not found"""
+    pass
+
+
+def port_search(between=None):
+    # find the right com that connect between the pc and controller
+    ports = serial.tools.list_ports.comports()
+    for desc in sorted(ports):
+        if "MSP430" in desc.description:
+            return desc.device
+    raise PortError
+
+
 if __name__ == '__main__':
+    # Automatic port search (can be used to find the right port, change COM19 with the port)
+    port = port_search()
+    serial_comm = ser.Serial(port, baudrate=9600, bytesize=ser.EIGHTBITS,
+                             parity=ser.PARITY_NONE, stopbits=ser.STOPBITS_ONE,
+                             timeout=1)
+    serial_comm.flush() # Flush input/output buffer
+    serial_comm.set_buffer_size(rx_size=1024, tx_size=1024)
+    serial_comm.reset_input_buffer()
+    serial_comm.reset_output_buffer()
+
     root = tk.Tk()
     app = MainApp(root)
     root.mainloop()
