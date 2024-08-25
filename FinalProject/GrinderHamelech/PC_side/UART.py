@@ -301,6 +301,44 @@ def read_from_MSP(state, size):
     #
     # return "Error"
 
+
+def joysticktelemetry():
+    global state
+    n = 4
+    while True:
+        while serial_comm.in_waiting > 0:  # while the input buffer isn't empty
+            message = serial_comm.read(size=4)  # at Painter size = 6
+            message = binascii.hexlify(message).decode('utf-8')
+            message_split = "".join([message[x:x + 2] for x in range(0, len(message), 2)][::-1])
+            telem = [message_split[i:i + n] for i in range(0, len(message_split), n)]
+        break
+    Vx = int((telem[0]), 16)
+    Vy = int((telem[1]), 16)
+    if Vx > 1024 or Vy > 1024:
+        telem[0] = "".join([telem[0][x:x + 2] for x in range(0, len(telem[0]), 2)][::-1])
+        telem[1] = "".join([telem[1][x:x + 2] for x in range(0, len(telem[1]), 2)][::-1])
+        Vx = int((telem[0]), 16)
+        Vy = int((telem[1]), 16)
+
+    print("Vx: " + str(Vx) + ", Vy: " + str(Vy) + ", state: " + str(state))
+
+    return Vx, Vy
+
+
+def message_handler(message=None, FSM=False, file=False):
+    serial_comm.reset_output_buffer()
+    txChar = message  # enter key to transmit
+    if FSM:
+        serial_comm.write(b"\x7f")
+    if not file:
+        bytesChar = bytes(txChar, 'ascii')
+    else:
+        bytesChar = txChar
+    serial_comm.write(bytesChar)
+    print(f"cp send: {message}")
+#----------------------------------------------------------------------------------------------------#
+
+
 class MainApp:
     def __init__(self, root):
         self.root = root
@@ -370,7 +408,7 @@ def port_search(between=None):
 
 
 if __name__ == '__main__':
-    # Automatic port search (can be used to find the right port, change COM19 with the port)
+    # Automatic port search
     port = port_search()
     serial_comm = ser.Serial(port, baudrate=9600, bytesize=ser.EIGHTBITS,
                              parity=ser.PARITY_NONE, stopbits=ser.STOPBITS_ONE,
