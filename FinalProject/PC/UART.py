@@ -83,13 +83,18 @@ class Paint:
         self.c = tk.Canvas(self.top, bg='white', width=600, height=400)
         self.c.grid(row=1, columnspan=5, padx=5, pady=5)
 
-        PaintActive = 1
-        # send_state('P')  # Painter
+        self.execute_serial_command('P')  # Painter
 
         self.setup()
         # self.read_state_from_serial()
 
+    def execute_serial_command(self, command):
+        thread = threading.Thread(target=serial_write, args=(bytes(command, 'ascii'),))
+        thread.start()
+
     def setup(self):
+        global PaintActive
+        PaintActive = 1
         self.old_x = None
         self.old_y = None
         self.line_width = self.choose_size_button.get()
@@ -99,12 +104,14 @@ class Paint:
         # Bind the mouse movement to the mouse_move method
         self.c.bind('<Motion>', self.mouse_move)
 
-        self.update_state()
+        # self.update_state()
+        # self.read_state_from_serial()
+        self.moving_stick()
 
     def update_state(self):
         global pstate
-        # pstate = self.read_state_from_serial()  # Read the state from the serial port
-        pstate=0
+        pstate = self.read_state_from_serial()  # Read the state from the serial port
+        # pstate=0
         if pstate == self.STATE_PEN:
             self.eraser_on = False
             self.color = self.DEFAULT_COLOR
@@ -116,6 +123,7 @@ class Paint:
         self.master.after(100, self.update_state)  # Check every 100ms
 
     def read_state_from_serial(self):
+        global pstate
         # Read state from serial communication
         def worker():
             try:
@@ -129,7 +137,30 @@ class Paint:
         thread = threading.Thread(target=worker, daemon=True)
         thread.start()
 
+    def moving_stick(self):
+        def worker():
+            firstTime = 1
+            while PaintActive:
+                try:
+                    Vx, Vy = self.joysticktelemetry()
+                except:
+                    continue
+                if Vx == 1000 and Vy == 1000:
+                    pstate = (pstate + 1) % 3
+                elif firstTime:
+                    x_init, y_init = Vx, Vy
+                    firstTime = 0
+                else:
+                    dx, dy = Vx, Vy
+                    curr_x, curr_y = mouse.get_position()  # read the cursor's current position
+                    dx, dy = int(dx) - int(x_init), int(dy) - int(y_init)  # convert to int
+                    mouse.move(curr_x - int(dx / 50), curr_y - int(dy / 50))  # move cursor to desired position
+        thread = threading.Thread(target=worker, daemon=True)
+        thread.start()
+
     def mouse_move(self, event):
+        global pstate
+        pstate=0
         if pstate != 2 and self.old_x is not None and self.old_y is not None:
             paint_color = 'white' if self.eraser_on else self.color
             self.c.create_line(self.old_x, self.old_y, event.x, event.y,
@@ -137,6 +168,27 @@ class Paint:
                                capstyle=tk.ROUND, smooth=tk.TRUE)
         self.old_x = event.x
         self.old_y = event.y
+
+    def joysticktelemetry(self):
+        n = 4
+        while True:
+            while serial_comm.in_waiting > 0:  # while the input buffer isn't empty
+                message = serial_comm.read(size=4)  # at Painter size = 6
+                message = binascii.hexlify(message).decode('utf-8')
+                message_split = "".join([message[x:x + 2] for x in range(0, len(message), 2)][::-1])
+                telem = [message_split[i:i + n] for i in range(0, len(message_split), n)]
+            break
+        Vx = int((telem[0]), 16)
+        Vy = int((telem[1]), 16)
+        if Vx > 1024 or Vy > 1024:
+            telem[0] = "".join([telem[0][x:x + 2] for x in range(0, len(telem[0]), 2)][::-1])
+            telem[1] = "".join([telem[1][x:x + 2] for x in range(0, len(telem[1]), 2)][::-1])
+            Vx = int((telem[0]), 16)
+            Vy = int((telem[1]), 16)
+
+        print("Vx: " + str(Vx) + ", Vy: " + str(Vy) + ", state: " + str(pstate))
+
+        return Vx, Vy
 
     def reset(self, event):
         self.old_x, self.old_y = None, None
@@ -476,29 +528,6 @@ def read_from_MSP(state, size):
     # except:
     #
     # return "Error"
-
-
-def joysticktelemetry():
-    global state
-    n = 4
-    while True:
-        while serial_comm.in_waiting > 0:  # while the input buffer isn't empty
-            message = serial_comm.read(size=4)  # at Painter size = 6
-            message = binascii.hexlify(message).decode('utf-8')
-            message_split = "".join([message[x:x + 2] for x in range(0, len(message), 2)][::-1])
-            telem = [message_split[i:i + n] for i in range(0, len(message_split), n)]
-        break
-    Vx = int((telem[0]), 16)
-    Vy = int((telem[1]), 16)
-    if Vx > 1024 or Vy > 1024:
-        telem[0] = "".join([telem[0][x:x + 2] for x in range(0, len(telem[0]), 2)][::-1])
-        telem[1] = "".join([telem[1][x:x + 2] for x in range(0, len(telem[1]), 2)][::-1])
-        Vx = int((telem[0]), 16)
-        Vy = int((telem[1]), 16)
-
-    print("Vx: " + str(Vx) + ", Vy: " + str(Vy) + ", state: " + str(state))
-
-    return Vx, Vy
 
 
 def message_handler(message=None, FSM=False, file=False):
