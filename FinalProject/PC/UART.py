@@ -8,6 +8,51 @@ import threading
 
 serial_comm = None
 
+# Instruction mapping with their corresponding opcode
+instruction_map = {
+    "inc_lcd": "01",
+    "dec_lcd": "02",
+    "rra_lcd": "03",
+    "set_delay": "04",
+    "clear_lcd": "05",
+    "stepper_deg": "06",
+    "stepper_scan": "07",
+    "sleep": "08"
+}
+
+
+def translate_line(line):
+    parts = line.strip().split()
+    instruction = parts[0]
+    operands = parts[1:]  # Capture operands after the instruction
+
+    # Fetch the opcode for the instruction
+    opcode = instruction_map[instruction]
+
+    # Handle the specific operand requirements
+    if instruction == "rra_lcd" and operands:
+        operand = f'{ord(operands[0]):02X}'  # Convert to uppercase
+    elif instruction == "stepper_scan" and operands:
+        # Split the operands on the comma to get two separate values
+        left_operand, right_operand = operands[0].split(',')
+        operand = f'{int(left_operand):02X}{int(right_operand):02X}'  # Convert to uppercase
+    elif operands:
+        operand = f'{int(operands[0]):02X}'  # Convert to uppercase
+    else:
+        operand = ""
+
+    # Combine opcode and operand
+    return opcode + operand
+
+
+def translate_script(input_file):
+    translated_content = []
+    with open(input_file, 'r') as infile:
+        for line in infile:
+            encoded_line = translate_line(line)
+            translated_content.append(encoded_line)
+    return '\n'.join(translated_content)
+
 
 class Paint:
     DEFAULT_PEN_SIZE = 5.0
@@ -114,7 +159,7 @@ class ScriptMode:
         self.top.title("Script Mode")
         self.top.geometry("800x600")
 
-        self.center_window(self.top, 800, 600)
+        self.center_window(self.top, 600, 600)
 
         # Style
         self.style = ttk.Style()
@@ -122,27 +167,38 @@ class ScriptMode:
         self.style.configure('TLabel', font=('Helvetica', 12))
 
         # Layout
-        self.file_listbox = tk.Listbox(self.top, width=50)
-        self.file_listbox.grid(row=0, column=0, padx=10, pady=10, rowspan=4)
+        self.file_label = ttk.Label(self.top, text="No file selected")
+        self.file_label.grid(row=0, column=0, padx=10, pady=10, columnspan=2)
 
+        # Original Script Text Widget
+        self.original_text_label = ttk.Label(self.top, text="Original Script")
+        self.original_text_label.grid(row=1, column=0, padx=10, pady=5)
+        self.original_text = tk.Text(self.top, width=30, height=20)
+        self.original_text.grid(row=2, column=0, padx=10, pady=10)
+
+        # Translated Script Text Widget
+        self.translated_text_label = ttk.Label(self.top, text="Translated Script")
+        self.translated_text_label.grid(row=1, column=1, padx=10, pady=5)
+        self.translated_text = tk.Text(self.top, width=30, height=20)
+        self.translated_text.grid(row=2, column=1, padx=10, pady=10)
+
+        # Buttons
         self.select_button = ttk.Button(self.top, text="Select File", command=self.select_file)
-        self.select_button.grid(row=0, column=1, padx=10, pady=10)
+        self.select_button.grid(row=3, column=0, padx=10, pady=10)
 
         self.execute_button = ttk.Button(self.top, text="Execute Script", command=self.execute_script)
-        self.execute_button.grid(row=1, column=1, padx=10, pady=10)
-
-        self.file_label = ttk.Label(self.top, text="No file selected")
-        self.file_label.grid(row=2, column=1, padx=10, pady=10)
-
-        self.content_text = tk.Text(self.top, width=60, height=20)
-        self.content_text.grid(row=3, column=1, padx=10, pady=10)
+        self.execute_button.grid(row=3, column=1, padx=10, pady=10)
 
         # Add a "Back" button
         self.back_button = ttk.Button(self.top, text="Back", command=self.close_script_mode)
-        self.back_button.grid(row=4, column=1, padx=10, pady=10)
+        self.back_button.grid(row=4, column=0, columnspan=2, padx=10, pady=10)
         
         burn_index = 0
-        # send_state('s')  # Send script stepper state
+        self.execute_serial_command("s")  # Send script state
+
+    def execute_serial_command(self, command):
+        thread = threading.Thread(target=serial_write, args=(bytes(command, 'ascii'),))
+        thread.start()
 
     def select_file(self):
         file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
@@ -151,10 +207,17 @@ class ScriptMode:
 
     def load_file(self, file_path):
         self.file_label.config(text=os.path.basename(file_path))
+
+        # Load and display the original script
         with open(file_path, 'r') as file:
-            content = file.read()
-            self.content_text.delete(1.0, tk.END)
-            self.content_text.insert(tk.END, content)
+            original_content = file.read()
+            self.original_text.delete(1.0, tk.END)
+            self.original_text.insert(tk.END, original_content)
+
+        # Translate the script and display the translated content
+        translated_content = translate_script(file_path)
+        self.translated_text.delete(1.0, tk.END)
+        self.translated_text.insert(tk.END, translated_content)
 
     def execute_script(self):
         script_content = self.content_text.get(1.0, tk.END).strip()
