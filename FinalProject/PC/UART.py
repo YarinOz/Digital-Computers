@@ -157,57 +157,87 @@ class ScriptMode:
         self.master = master
         self.top = tk.Toplevel(master)
         self.top.title("Script Mode")
-        self.top.geometry("800x600")
+        self.top.geometry("900x600")
 
-        self.center_window(self.top, 600, 600)
+        self.center_window(self.top, 900, 600)
 
         # Style
         self.style = ttk.Style()
         self.style.configure('TButton', font=('Helvetica', 12), padding=6, background='#4CAF50', foreground='black')
         self.style.configure('TLabel', font=('Helvetica', 12))
 
+        # Grid configuration
+        self.top.grid_rowconfigure(1, weight=1)
+        self.top.grid_rowconfigure(2, weight=1)
+        self.top.grid_columnconfigure(0, weight=1)
+        self.top.grid_columnconfigure(1, weight=1)
+        self.top.grid_columnconfigure(2, weight=1)
+        self.top.grid_columnconfigure(3, weight=1)
+
         # Layout
-        self.file_label = ttk.Label(self.top, text="No file selected")
-        self.file_label.grid(row=0, column=0, padx=10, pady=10, columnspan=2)
+        self.file_label = ttk.Label(self.top, text="No files selected")
+        self.file_label.grid(row=1, column=0, padx=10, pady=10, columnspan=4, sticky='w')
+
+        # File Listbox
+        self.file_listbox = tk.Listbox(self.top, width=30, height=15, selectmode=tk.SINGLE)
+        self.file_listbox.grid(row=2, column=0, padx=10, pady=10, rowspan=1, sticky='ns')
 
         # Original Script Text Widget
         self.original_text_label = ttk.Label(self.top, text="Original Script")
-        self.original_text_label.grid(row=1, column=0, padx=10, pady=5)
-        self.original_text = tk.Text(self.top, width=30, height=20)
-        self.original_text.grid(row=2, column=0, padx=10, pady=10)
+        self.original_text_label.grid(row=1, column=1, padx=10, pady=5, sticky='w')
+        self.original_text = tk.Text(self.top, width=40, height=20)
+        self.original_text.grid(row=2, column=1, padx=10, pady=10, sticky='nsew')
 
         # Translated Script Text Widget
         self.translated_text_label = ttk.Label(self.top, text="Translated Script")
-        self.translated_text_label.grid(row=1, column=1, padx=10, pady=5)
-        self.translated_text = tk.Text(self.top, width=30, height=20)
-        self.translated_text.grid(row=2, column=1, padx=10, pady=10)
+        self.translated_text_label.grid(row=1, column=2, padx=10, pady=5, sticky='w')
+        self.translated_text = tk.Text(self.top, width=40, height=20)
+        self.translated_text.grid(row=2, column=2, padx=10, pady=10, sticky='nsew')
 
         # Buttons
-        self.select_button = ttk.Button(self.top, text="Select File", command=self.select_file)
-        self.select_button.grid(row=3, column=0, padx=10, pady=10)
+        self.select_button = ttk.Button(self.top, text="Select Files", command=self.select_files)
+        self.select_button.grid(row=3, column=0, padx=10, pady=10, sticky='ew')
+
+        self.load_button = ttk.Button(self.top, text="Load File", command=self.load_file)
+        self.load_button.grid(row=3, column=1, padx=10, pady=10, sticky='ew')
 
         self.execute_button = ttk.Button(self.top, text="Execute Script", command=self.execute_script)
-        self.execute_button.grid(row=3, column=1, padx=10, pady=10)
+        self.execute_button.grid(row=3, column=2, padx=10, pady=10, sticky='ew')
 
         # Add a "Back" button
         self.back_button = ttk.Button(self.top, text="Back", command=self.close_script_mode)
-        self.back_button.grid(row=4, column=0, columnspan=2, padx=10, pady=10)
-        
-        burn_index = 0
+        self.back_button.grid(row=4, column=0, columnspan=4, padx=10, pady=10, sticky='ew')
+
+        self.files = []  # List to store selected file paths
+        self.burn_index = 0
         self.execute_serial_command("s")  # Send script state
 
     def execute_serial_command(self, command):
         thread = threading.Thread(target=serial_write, args=(bytes(command, 'ascii'),))
         thread.start()
 
-    def select_file(self):
-        file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
-        if file_path:
-            self.load_file(file_path)
+    def select_files(self):
+        file_paths = filedialog.askopenfilenames(filetypes=[("Text files", "*.txt")])
+        if file_paths:
+            self.files = list(file_paths)[:3]  # Limit to 3 files
+            self.update_file_listbox()
 
-    def load_file(self, file_path):
-        self.file_label.config(text=os.path.basename(file_path))
+    def update_file_listbox(self):
+        self.file_listbox.delete(0, tk.END)
+        for file in self.files:
+            self.file_listbox.insert(tk.END, os.path.basename(file))
+        if self.files:
+            self.file_label.config(text=f"{len(self.files)} file(s) selected")
 
+    def load_file(self):
+        selected_index = self.file_listbox.curselection()
+        if not selected_index:
+            return  # No file selected
+
+        selected_file = self.files[selected_index[0]]
+        self.load_file_content(selected_file)
+
+    def load_file_content(self, file_path):
         # Load and display the original script
         with open(file_path, 'r') as file:
             original_content = file.read()
@@ -220,11 +250,17 @@ class ScriptMode:
         self.translated_text.insert(tk.END, translated_content)
 
     def execute_script(self):
-        script_content = self.content_text.get(1.0, tk.END).strip()
-        if script_content:
-            print("Executing script:\n\n" + script_content)
-        else:
-            print("No script content to execute.")
+        selected_index = self.file_listbox.curselection()
+        if not selected_index:
+            print("No file selected to execute.")
+            return
+
+        selected_file = self.files[selected_index[0]]
+        with open(selected_file, 'r') as file:
+            script_content = file.read().strip()
+            if script_content:
+                print(f"Executing script from {os.path.basename(selected_file)}:\n\n{script_content}")
+                # Here, you can add logic to execute the script content if needed
 
     def close_script_mode(self):
         self.top.destroy()
