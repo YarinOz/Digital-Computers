@@ -27,7 +27,7 @@ void main(void){
 	    case stateAutoRotate:
 
 	        while(rotateIFG)
-	        {    delay(10000);
+	        {    delay(500);
 	            curr_counter++;
 	            Stepper_clockwise(200); }
 
@@ -68,7 +68,7 @@ void main(void){
 
         case stateAutoRotate: // start rotate
             counter = 0;
-            while(rotateIFG) { Stepper_clockwise(100); counter++; }
+            while(rotateIFG) {delay(500); Stepper_clockwise(100); counter++; }
             break;
 
         case stateStopRotate: // stop and set phi
