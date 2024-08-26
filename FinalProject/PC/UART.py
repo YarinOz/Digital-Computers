@@ -6,6 +6,8 @@ import serial.tools.list_ports
 import binascii
 import threading
 
+serial_comm = None
+
 
 class Paint:
     DEFAULT_PEN_SIZE = 5.0
@@ -270,23 +272,28 @@ class ManualControl:
 
         self.joystick_mode = False
 
-        send_state("m") # Send manual stepper state
+        self.execute_serial_command("m")  # Send manual stepper state
 
     def start_motor(self):
         # Placeholder for starting motor logic
         print("Motor started.")
-        send_state("A")
+        self.execute_serial_command("A")
 
     def stop_motor(self):
         # Placeholder for stopping motor logic
         print("Motor stopped.")
-        send_state("M")
+        self.execute_serial_command("M")
 
     def toggle_joystick_mode(self):
         # Toggle joystick mode
         self.joystick_mode = not self.joystick_mode
         print(f"Joystick Mode {'enabled' if self.joystick_mode else 'disabled'}.")
-        send_state("J")
+        mode = "J" if self.joystick_mode else "M"
+        self.execute_serial_command(mode)
+
+    def execute_serial_command(self, command):
+        thread = threading.Thread(target=serial_write, args=(bytes(command, 'ascii'),))
+        thread.start()
 
     def close_manual_control(self):
         self.top.destroy()
@@ -298,6 +305,16 @@ class ManualControl:
         y = (screen_height - height) // 2
         window.geometry(f"{width}x{height}+{x}+{y}")
 
+
+def serial_write(message):
+    global serial_comm
+    try:
+        if serial_comm and serial_comm.is_open:
+            serial_comm.write(message)
+        else:
+            print("Serial port not open.")
+    except Exception as e:
+        print(f"Error writing to serial port: {e}")
 
 # Communication
 def send_state(message=None, file_option=False):
@@ -387,9 +404,6 @@ class MainApp:
 
         self.center_window(self.root, 400, 300)
 
-        # Initialize serial communication
-        # self.serial_comm = self.initialize_serial_comm()
-
         # Style
         self.style = ttk.Style()
         self.style.configure('TButton', font=('Helvetica', 12), padding=6, background='#4CAF50', foreground='black')
@@ -414,29 +428,6 @@ class MainApp:
 
         self.script_button = ttk.Button(self.main_frame, text="Script Mode", command=self.show_script)
         self.script_button.pack(pady=5)
-
-    def port_search(between=None):
-        # find the right com that connect between the pc and controller
-        ports = serial.tools.list_ports.comports()
-        for desc in sorted(ports):
-            if "MSP430" in desc.description:
-                return desc.device
-        raise PortError
-
-    def initialize_serial_comm(self):
-        try:
-            port = port_search()
-            serial_comm = ser.Serial(port, baudrate=9600, bytesize=ser.EIGHTBITS,
-                                        parity=ser.PARITY_NONE, stopbits=ser.STOPBITS_ONE,
-                                        timeout=1)
-            serial_comm.flush()  # Flush input/output buffer
-            serial_comm.set_buffer_size(rx_size=1024, tx_size=1024)
-            serial_comm.reset_input_buffer()
-            serial_comm.reset_output_buffer()
-            return serial_comm
-        except PortError:
-            messagebox.showerror("Port Error", "MSP430 Port not found.")
-            self.root.quit()
     
     def show_manual(self):
         ManualControl(self.root)
@@ -458,7 +449,34 @@ class MainApp:
         window.geometry(f"{width}x{height}+{x}+{y}")
 
 
+def port_search():
+    # find the right com that connect between the pc and controller
+    ports = serial.tools.list_ports.comports()
+    for desc in sorted(ports):
+        if "MSP430" in desc.description:
+            return desc.device
+    raise PortError
+
+
+def initialize_serial_comm():
+    global serial_comm
+    try:
+        port = port_search()
+        serial_comm = ser.Serial(port, baudrate=9600, bytesize=ser.EIGHTBITS,
+                                 parity=ser.PARITY_NONE, stopbits=ser.STOPBITS_ONE,
+                                 timeout=1)
+        serial_comm.flush()
+        serial_comm.set_buffer_size(rx_size=1024, tx_size=1024)
+        serial_comm.reset_input_buffer()
+        serial_comm.reset_output_buffer()
+    except PortError:
+        messagebox.showerror("Port Error", "MSP430 Port not found.")
+        sys.exit()
+
+
 if __name__ == '__main__':
+    initialize_serial_comm()
+
     root = tk.Tk()
     app = MainApp(root)
     root.mainloop()
