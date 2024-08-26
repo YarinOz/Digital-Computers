@@ -207,27 +207,50 @@ class CalibrationMode:
         self.back_button = ttk.Button(self.top, text="Back", command=self.close_calibration)
         self.back_button.pack(pady=5)
 
-        send_state("C") # Send calibration stepper state
+        self.execute_serial_command("C")  # Send calibration state
+
+    def execute_serial_command(self, command):
+        thread = threading.Thread(target=serial_write, args=(bytes(command, 'ascii'),))
+        thread.start()
 
     def start_calibration(self):
         # Placeholder for actual calibration logic
         print("Starting calibration...")
-        send_state("A")
+        self.execute_serial_command("A")
 
     def stop_calibration(self):
         # Placeholder for actual calibration logic
         print("Stopping calibration...")
-        send_state("M")
+        self.execute_serial_command("M")
+        threading.Thread(target=self.read_counter_value, daemon=True).start()
+
+    def read_counter_value(self):
         while True:
-            while serial_comm.in_waiting > 0:  # while the input buffer isn't empty
-                counter = serial_comm.readline().decode('utf-8')
-            break
+            if serial_comm.in_waiting > 0:
+                try:
+                    # Read the line and strip any unwanted characters
+                    raw_data = serial_comm.readline().decode('utf-8').strip()
 
-        phi = int(counter.split('\x00')[0]) / 360
+                    # Remove non-numeric characters and null bytes
+                    cleaned_data = ''.join(filter(str.isdigit, raw_data))
 
-        # Update the labels with the counter and phi values
-        self.counter_label.config(text=f"Counter: {counter.strip()}")
-        self.phi_label.config(text=f"Phi: {round(phi, 4)} [deg]")
+                    if cleaned_data:
+                        # Convert to integer and compute phi
+                        counter_int = int(cleaned_data)
+                        phi = counter_int / 360
+
+                        # Update the labels on the GUI
+                        self.master.after(0, self.update_labels, cleaned_data, round(phi, 4))
+                    break
+                except ValueError as e:
+                    print(f"Error converting counter value: {e}")
+                except Exception as e:
+                    print(f"Error reading counter value: {e}")
+                break  # Exit the loop if there's an error
+
+    def update_labels(self, counter, phi):
+        self.counter_label.config(text=f"Counter: {counter}")
+        self.phi_label.config(text=f"Phi: {phi} [deg]")
 
     def close_calibration(self):
         self.top.destroy()
