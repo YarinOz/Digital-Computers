@@ -1,0 +1,9 @@
+inc_lcd 3
+set_delay 30
+dec_lcd 3
+rra_lcd 4
+clear_lcd
+stepper_deg 35
+inc_lcd 5
+stepper_scan 20,60
+sleep
