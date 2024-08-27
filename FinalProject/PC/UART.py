@@ -89,7 +89,6 @@ class Paint:
     def painterThread(self):
         def worker():
             global state
-            state = 0
             PaintActive = 1
             self.execute_serial_command("P")  # Send script state
             # start paint_paint in another thread
@@ -494,6 +493,7 @@ class ManualControl:
 
 def serial_write(message):
     global serial_comm
+    serial_comm.reset_output_buffer()
     try:
         if serial_comm and serial_comm.is_open:
             serial_comm.write(message)
@@ -502,62 +502,12 @@ def serial_write(message):
     except Exception as e:
         print(f"Error writing to serial port: {e}")
 
-# Communication
-def send_state(message=None, file_option=False):
-    serial_comm.reset_output_buffer()
-    if file_option:
-        bytesMenu = message
-    else:
-        bytesMenu = bytes(message, 'ascii')
-    serial_comm.write(bytesMenu)
 
-
-def read_from_MSP(state, size):
-    n = 4
-    while True:
-        while serial_comm.in_waiting > 0:  # while the input buffer isn't empty
-            if state == 'Painter':
-                message = serial_comm.read(size=size)  # at Painter size = 6
-                message = binascii.hexlify(message).decode('utf-8')
-                message_split = "".join([message[x:x + 2] for x in range(0, len(message), 2)][::-1])
-                final_message = [message_split[i:i + n] for i in range(0, len(message_split), n)]
-            elif state == 'script':
-                #        try:
-                final_message = serial_comm.read(size=size).decode('utf-8')  # at Painter size = 4
-            #        except:
-            #           final_message = s.read()
-            #           print(final_message)
-            #           print("error")
-            # final_message = s.readline().decode('utf-8')
-            else:
-                final_message = serial_comm.readline().decode('utf-8')
-                # final_message = s.readline()
-                # int(binascii.hexlify(message), 16)
-                # int((final_message[0]), 16) - convert hex to int
-
-            #  print(final_message)
-            return final_message
-    # except:
-    #
-    # return "Error"
-
-
-def message_handler(message=None, FSM=False, file=False):
-    serial_comm.reset_output_buffer()
-    txChar = message  # enter key to transmit
-    if FSM:
-        serial_comm.write(b"\x7f")
-    if not file:
-        bytesChar = bytes(txChar, 'ascii')
-    else:
-        bytesChar = txChar
-    serial_comm.write(bytesChar)
-    print(f"cp send: {message}")
-#----------------------------------------------------------------------------------------------------#
 # Serial Communication UART initialization
 class PortError(Exception):
     """Raised when the port not found"""
     pass
+
 
 class MainApp:
     def __init__(self, root):
@@ -639,6 +589,10 @@ def initialize_serial_comm():
 
 if __name__ == '__main__':
     initialize_serial_comm()
+
+    firstTime = 1
+    state = 2  # Start at neutral state
+    PaintActive = 0
 
     root = tk.Tk()
     app = MainApp(root)
