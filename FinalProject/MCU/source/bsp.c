@@ -6,15 +6,15 @@
 void GPIOconfig(void){
   WDTCTL = WDTHOLD | WDTPW;		// Stop WDT
   // LEDs Configuration
-  LEDsArrPortDir |= 0xF0;
-  LEDsArrPortOut |= 0x00;
-  LEDsArrPortSel &= ~0xF0;
+  // LEDsArrPortDir |= 0xF0;
+  // LEDsArrPortOut |= 0x00;
+  // LEDsArrPortSel &= ~0xF0;
 
-  // LCD configuration
-  LCD_DATA_WRITE &= ~0xFF;
-  LCD_DATA_DIR |= 0xF0;    // P1.4-P1.7 To Output('1')
-  LCD_DATA_SEL &= ~0xF0;   // Bit clear P1.4-P1.7
-  LCD_CTL_SEL  &= ~0xE0;   // Bit clear P2.5-P2.7
+  // // LCD configuration
+  // LCD_DATA_WRITE &= ~0xFF;
+  // LCD_DATA_DIR |= 0xF0;    // P1.4-P1.7 To Output('1')
+  // LCD_DATA_SEL &= ~0xF0;   // Bit clear P1.4-P1.7
+  // LCD_CTL_SEL  &= ~0xE0;   // Bit clear P2.5-P2.7
 
   // JoyStick Configuration  P1.3 - Vrx; P1.4 - Vry; P1.5 - PB
   // P1.3-P1.4 - X(Don't care) for Sel, Dir According the dataSheet For A3,A4 input Select For ADC
