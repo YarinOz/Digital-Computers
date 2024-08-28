@@ -64,7 +64,6 @@ class Paint:
 
     def __init__(self, master):
         self.master = master
-        # self.serial_comm = serial_comm  # Pass the serial communication object
         self.top = tk.Toplevel(master)
         self.top.title("Painter")
         self.top.geometry("800x600")
@@ -77,6 +76,13 @@ class Paint:
         self.style.configure('TScale', font=('Helvetica', 12))
         self.style.configure('TLabel', font=('Helvetica', 12))
 
+        # Create widgets
+        self.create_widgets()
+
+        # Set up the painting environment
+        self.setup()
+
+    def create_widgets(self):
         self.choose_size_button = ttk.Scale(self.top, from_=1, to=20, orient=tk.HORIZONTAL)
         self.choose_size_button.set(5)
         self.choose_size_button.grid(row=0, column=0, padx=5, pady=5)
@@ -84,14 +90,17 @@ class Paint:
         self.c = tk.Canvas(self.top, bg='white', width=600, height=400)
         self.c.grid(row=1, columnspan=5, padx=5, pady=5)
 
-        self.setup()
+        # Add Back Button
+        self.back_button = ttk.Button(self.top, text="Back", command=self.go_back)
+        self.back_button.grid(row=2, column=0, padx=10, pady=10)
+
+    def go_back(self):
+        self.top.destroy()
 
     def painterThread(self):
         def worker():
-            global state
             PaintActive = 1
             self.execute_serial_command("P")  # Send script state
-            # start paint_paint in another thread
             firstTime = 1
             while PaintActive:
                 try:
@@ -113,7 +122,6 @@ class Paint:
         thread.start()
 
     def getJoystickTelemetry(self):
-        global state
         n = 4
         while True:
             while serial_comm.in_waiting > 0:  # while the input buffer isn't empty
@@ -154,13 +162,10 @@ class Paint:
         global state
 
         if state == 0 and self.old_x and self.old_y:  # paint
-            # self.use_pen()
-            # paint_color = self.color
             self.c.create_line(self.old_x, self.old_y, event.x, event.y,
                                width=self.line_width, fill=self.color,
                                capstyle=tk.ROUND, smooth=tk.TRUE, splinesteps=36)
         elif state == 1 and self.old_x and self.old_y:  # erase
-            # paint_color = 'white'
             self.c.create_line(self.old_x, self.old_y, event.x, event.y,
                                width=self.line_width, fill='white',
                                capstyle=tk.ROUND, smooth=tk.TRUE, splinesteps=36)
@@ -175,7 +180,6 @@ class Paint:
     def update_state(self):
         global pstate
         pstate = self.read_state_from_serial()  # Read the state from the serial port
-        # pstate=0
         if pstate == self.STATE_PEN:
             self.eraser_on = False
             self.color = self.DEFAULT_COLOR
@@ -188,7 +192,6 @@ class Paint:
 
     def read_state_from_serial(self):
         global pstate
-        # Read state from serial communication
         def worker():
             try:
                 while True:
@@ -578,8 +581,8 @@ def initialize_serial_comm():
         serial_comm = ser.Serial(port, baudrate=9600, bytesize=ser.EIGHTBITS,
                                  parity=ser.PARITY_NONE, stopbits=ser.STOPBITS_ONE,
                                  timeout=1)
-        serial_comm.flush()
-        serial_comm.set_buffer_size(rx_size=1024, tx_size=1024)
+        # serial_comm.flush()
+        # serial_comm.set_buffer_size(rx_size=1024, tx_size=1024)
         serial_comm.reset_input_buffer()
         serial_comm.reset_output_buffer()
     except PortError:
