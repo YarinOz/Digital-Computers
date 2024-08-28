@@ -99,6 +99,7 @@ class Paint:
 
     def painterThread(self):
         def worker():
+            global state
             PaintActive = 1
             self.execute_serial_command("P")  # Send script state
             firstTime = 1
@@ -176,33 +177,6 @@ class Paint:
 
         self.old_x = event.x
         self.old_y = event.y
-
-    def update_state(self):
-        global pstate
-        pstate = self.read_state_from_serial()  # Read the state from the serial port
-        if pstate == self.STATE_PEN:
-            self.eraser_on = False
-            self.color = self.DEFAULT_COLOR
-        elif pstate == self.STATE_ERASE:
-            self.eraser_on = True
-            self.color = 'white'
-        else:
-            self.eraser_on = False
-        self.master.after(100, self.update_state)  # Check every 100ms
-
-    def read_state_from_serial(self):
-        global pstate
-        def worker():
-            try:
-                while True:
-                    if serial_comm.in_waiting > 0:
-                        pstate = serial_comm.readline().decode('utf-8').strip()
-                        return int(pstate)
-            except Exception as e:
-                print(f"Error reading from serial: {e}")
-                return self.STATE_NEUTRAL
-        thread = threading.Thread(target=worker, daemon=True)
-        thread.start()
 
     def reset(self, event):
         self.old_x, self.old_y = None, None
