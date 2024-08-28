@@ -56,6 +56,7 @@ def translate_script(input_file):
 
 
 class Paint:
+    STOP_FLAG = threading.Event()
     DEFAULT_PEN_SIZE = 5.0
     DEFAULT_COLOR = 'black'
     STATE_PEN = 0
@@ -100,10 +101,10 @@ class Paint:
     def painterThread(self):
         def worker():
             global state
-            PaintActive = 1
+            PaintActive = True
             self.execute_serial_command("P")  # Send script state
-            firstTime = 1
-            while PaintActive:
+            firstTime = True
+            while PaintActive and not Paint.STOP_FLAG.is_set():
                 try:
                     Vx, Vy = self.getJoystickTelemetry()
                 except:
@@ -182,6 +183,7 @@ class Paint:
         self.old_x, self.old_y = None, None
 
     def close_painter(self):
+        Paint.STOP_FLAG.set()
         self.top.destroy()
 
     def center_window(self, window, width, height):
@@ -314,6 +316,8 @@ class ScriptMode:
 
 
 class CalibrationMode:
+    STOP_FLAG = threading.Event()
+
     def __init__(self, master):
         self.master = master
         self.top = tk.Toplevel(master)
@@ -364,7 +368,7 @@ class CalibrationMode:
         threading.Thread(target=self.read_counter_value, daemon=True).start()
 
     def read_counter_value(self):
-        while True:
+        while not CalibrationMode.STOP_FLAG.is_set():
             if serial_comm.in_waiting > 0:
                 try:
                     # Read the line and strip any unwanted characters
@@ -392,6 +396,7 @@ class CalibrationMode:
         self.phi_label.config(text=f"Phi: {phi} [deg]")
 
     def close_calibration(self):
+        CalibrationMode.STOP_FLAG.set()
         self.top.destroy()
 
     def center_window(self, window, width, height):
@@ -403,6 +408,8 @@ class CalibrationMode:
 
 
 class ManualControl:
+    STOP_FLAG = threading.Event()
+
     def __init__(self, master):
         self.master = master
         self.top = tk.Toplevel(master)
@@ -458,6 +465,7 @@ class ManualControl:
         thread.start()
 
     def close_manual_control(self):
+        ManualControl.STOP_FLAG.set()
         self.top.destroy()
 
     def center_window(self, window, width, height):
@@ -564,13 +572,29 @@ def initialize_serial_comm():
         sys.exit()
 
 
+def close_serial_comm():
+    global serial_comm
+    if serial_comm and serial_comm.is_open:
+        serial_comm.close()
+        print("Serial port closed.")
+
+
+def on_closing():
+    Paint.STOP_FLAG.set()
+    CalibrationMode.STOP_FLAG.set()
+    ManualControl.STOP_FLAG.set()
+    close_serial_comm()
+    root.destroy()
+
+
 if __name__ == '__main__':
     initialize_serial_comm()
 
-    firstTime = 1
+    firstTime = True
     state = 2  # Start at neutral state
-    PaintActive = 0
+    PaintActive = False
 
     root = tk.Tk()
     app = MainApp(root)
+    root.protocol("WM_DELETE_WINDOW", on_closing)  # Ensure cleanup on window close
     root.mainloop()
