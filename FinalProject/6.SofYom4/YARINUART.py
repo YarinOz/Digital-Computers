@@ -334,9 +334,6 @@ class ScriptMode:
             except Exception as e:
                 print(f"Error reading flash ack: {e}")
                 return
-            
-            if flash_ack == "FIN":
-                print("Flash successful")
             time.sleep(0.3)
 
         # Run the function in a separate thread
@@ -345,15 +342,15 @@ class ScriptMode:
 
     def execute_script(self):
         selected_index = self.file_listbox.curselection()
-        print(selected_index)
+        print(selected_index[0])
         if not selected_index:
             print("No file selected to execute.")
             return
-        if (selected_index == 0):
+        if (selected_index[0] == 0):
             curr_exe = 'T'
-        elif (selected_index == 1):
+        elif (selected_index[0] == 1):
             curr_exe = 'U'
-        elif (selected_index == 2):
+        elif (selected_index[0] == 2):
             curr_exe = 'V'
 
         selected_file = self.files[selected_index[0]]
