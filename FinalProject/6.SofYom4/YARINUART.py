@@ -425,6 +425,7 @@ class CalibrationMode:
         # Placeholder for actual calibration logic
         print("Stopping calibration...")
         self.execute_serial_command("M")
+        time.sleep(0.8)
         threading.Thread(target=self.read_counter_value, daemon=True).start()
 
     def read_counter_value(self):
