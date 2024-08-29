@@ -199,6 +199,8 @@ class Paint:
 class ScriptMode:
     STOP_FLAG = threading.Event()
     def __init__(self, master):
+        self.translated_content = ""
+
         self.master = master
         self.top = tk.Toplevel(master)
         self.top.title("Script Mode")
@@ -290,17 +292,17 @@ class ScriptMode:
             self.original_text.insert(tk.END, original_content)
 
         # Translate the script and display the translated content
-        translated_content = translate_script(file_path)
+        self.translated_content = translate_script(file_path)
         self.translated_text.delete(1.0, tk.END)
-        self.translated_text.insert(tk.END, translated_content)
+        self.translated_text.insert(tk.END, self.translated_content)
 
-        if burn_index == 0:
+        if self.burn_index == 0:
             self.execute_serial_command("W")
-        elif burn_index == 1:
+        elif self.burn_index == 1:
             self.execute_serial_command("X")
-        elif burn_index == 2:
+        elif self.burn_index == 2:
             self.execute_serial_command("Y")
-        burn_index += 1
+        self.burn_index += 1
 
         try:
             while not ScriptMode.STOP_FLAG.is_set():
@@ -326,11 +328,9 @@ class ScriptMode:
             curr_exe = 'V'
 
         selected_file = self.files[selected_index[0]]
-        with open(selected_file, 'r') as file:
-            script_content = file.read().strip()
-            if script_content:
-                print(f"Executing script from {os.path.basename(selected_file)}:\n\n{script_content}")
-                # Here, you can add logic to execute the script content if needed
+        if self.translated_content:
+            print(f"Executing translated script from {os.path.basename(selected_file)}:\n\n{self.translated_content}")
+            
         time.sleep(0.5)
         self.execute_serial_command(curr_exe) # Send the execute command
         time.sleep(0.5)
@@ -417,15 +417,13 @@ class CalibrationMode:
                 try:
                     # Read the line and strip any unwanted characters
                     raw_data = serial_comm.readline().decode('utf-8').strip()
-
                     # Remove non-numeric characters and null bytes
                     cleaned_data = ''.join(filter(str.isdigit, raw_data))
-
+                    print(f"Counter value: {cleaned_data}") # Debug print
                     if cleaned_data:
                         # Convert to integer and compute phi
                         counter_int = int(cleaned_data)
                         phi = counter_int / 360
-
                         # Update the labels on the GUI
                         self.master.after(0, self.update_labels, cleaned_data, round(phi, 4))
                     break
