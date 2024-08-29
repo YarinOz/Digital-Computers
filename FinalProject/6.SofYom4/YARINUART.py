@@ -256,7 +256,7 @@ class ScriptMode:
 
         self.files = []  # List to store selected file paths
         self.burn_index = 0
-        self.execute_serial_command("s")  # Send script state
+        self.execute_serial_command('S')  # Send script state
 
     def execute_serial_command(self, command, file=False):
         if file:
@@ -319,11 +319,11 @@ class ScriptMode:
 
             time.sleep(0.5)
             if self.burn_index == 0:
-                self.execute_serial_command("W")
+                self.execute_serial_command('W')
             elif self.burn_index == 1:
-                self.execute_serial_command("X")
+                self.execute_serial_command('X')
             elif self.burn_index == 2:
-                self.execute_serial_command("Y")
+                self.execute_serial_command('Y')
             self.burn_index += 1
 
             try:
