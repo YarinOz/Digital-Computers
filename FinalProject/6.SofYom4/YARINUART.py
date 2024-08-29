@@ -311,7 +311,9 @@ class ScriptMode:
             
             self.translated_content = bytes(self.translated_content + 'Z', 'utf-8')  # Append 'Z' end marker
             # Send the translated content using execute_serial_command
+            print(f"Flashing translated script from {os.path.basename(file_path)}:\n\n{self.translated_content}")
             self.execute_serial_command(self.translated_content, file=True)
+            print("Flashing complete")
 
             if self.burn_index == 0:
                 self.execute_serial_command("W")
