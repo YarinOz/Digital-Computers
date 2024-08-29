@@ -343,6 +343,7 @@ class ScriptMode:
 
 
     def execute_script(self):
+        global translated_content
         selected_index = self.file_listbox.curselection()
         if not selected_index:
             print("No file selected to execute.")
@@ -351,8 +352,8 @@ class ScriptMode:
         curr_exe = ['T', 'U', 'V'][selected_index[0]]
 
         selected_file = self.files[selected_index[0]]
-        if self.translated_content:
-            print(f"Executing translated script from {os.path.basename(selected_file)}:\n\n{self.translated_content}")
+        if translated_content:
+            print(f"Executing translated script from {os.path.basename(selected_file)}:\n\n{translated_content}")
         else:
             print("No translated content available to execute.")
 
