@@ -315,6 +315,7 @@ class ScriptMode:
             self.execute_serial_command(self.translated_content, file=True)
             print("Flashing complete")
 
+            time.sleep(0.5)
             if self.burn_index == 0:
                 self.execute_serial_command("W")
             elif self.burn_index == 1:
