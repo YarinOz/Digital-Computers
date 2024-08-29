@@ -283,6 +283,7 @@ class ScriptMode:
         self.load_file_content(selected_file)
 
     def load_file_content(self, file_path):
+        global translated_content
         def run():
             try:
                 # Load and display the original script
