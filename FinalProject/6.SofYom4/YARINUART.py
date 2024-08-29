@@ -199,8 +199,6 @@ class Paint:
 class ScriptMode:
     STOP_FLAG = threading.Event()
     def __init__(self, master):
-        self.translated_content = ""
-
         self.master = master
         self.top = tk.Toplevel(master)
         self.top.title("Script Mode")
@@ -297,12 +295,12 @@ class ScriptMode:
         except Exception as e:
             print(f"Error loading file: {e}")
             return
-
+        translated_content = None
         # Translate the script and display the translated content
         try:
-            self.translated_content = translate_script(file_path)
+            translated_content = translate_script(file_path)
             self.translated_text.delete(1.0, tk.END)
-            self.translated_text.insert(tk.END, self.translated_content)
+            self.translated_text.insert(tk.END, translated_content)
         except Exception as e:
             print(f"Error translating file: {e}")
             return
@@ -327,6 +325,7 @@ class ScriptMode:
         time.sleep(0.3)
 
     def execute_script(self):
+        global translated_content
         selected_index = self.file_listbox.curselection()
         if not selected_index:
             print("No file selected to execute.")
@@ -335,8 +334,8 @@ class ScriptMode:
         curr_exe = ['T', 'U', 'V'][selected_index[0]]
 
         selected_file = self.files[selected_index[0]]
-        if self.translated_content:
-            print(f"Executing translated script from {os.path.basename(selected_file)}:\n\n{self.translated_content}")
+        if translated_content:
+            print(f"Executing translated script from {os.path.basename(selected_file)}:\n\n{translated_content}")
         else:
             print("No translated content available to execute.")
 
