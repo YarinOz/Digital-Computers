@@ -630,7 +630,6 @@ def on_closing():
     Paint.STOP_FLAG.set()
     CalibrationMode.STOP_FLAG.set()
     ManualControl.STOP_FLAG.set()
-    ScriptMode.STOP_FLAG.set()
     close_serial_comm()
     root.destroy()
 
