@@ -199,7 +199,7 @@ class Paint:
 class ScriptMode:
     STOP_FLAG = threading.Event()
     def __init__(self, master):
-        self.translated_content = None
+        # self.translated_content = None
         self.master = master
         self.top = tk.Toplevel(master)
         self.top.title("Script Mode")
@@ -287,6 +287,7 @@ class ScriptMode:
         self.load_file_content(selected_file)
 
     def load_file_content(self, file_path):
+        global translated_content
         def run():
             try:
                 # Load and display the original script
@@ -300,19 +301,20 @@ class ScriptMode:
                 print(f"Error loading file: {e}")
                 return
             
+            translated_content = None
             # Translate the script and display the translated content
             try:
-                self.translated_content = translate_script(file_path)
+                translated_content = translate_script(file_path)
                 self.translated_text.delete(1.0, tk.END)
-                self.translated_text.insert(tk.END, self.translated_content)
+                self.translated_text.insert(tk.END, translated_content)
             except Exception as e:
                 print(f"Error translating file: {e}")
                 return
             
-            self.translated_content = bytes(self.translated_content + 'Z', 'utf-8')  # Append 'Z' end marker
+            translated_content = bytes(translated_content + 'Z', 'utf-8')  # Append 'Z' end marker
             # Send the translated content using execute_serial_command
-            print(f"Flashing translated script from {os.path.basename(file_path)}:\n\n{self.translated_content}")
-            self.execute_serial_command(self.translated_content, file=True)
+            print(f"Flashing translated script from {os.path.basename(file_path)}:\n\n{translated_content}")
+            self.execute_serial_command(translated_content, file=True)
             print("Flashing complete")
 
             time.sleep(0.5)
