@@ -305,9 +305,10 @@ class ScriptMode:
             except Exception as e:
                 print(f"Error translating file: {e}")
                 return
-
+            
+            self.translated_content = bytes(self.translated_content + 'Z', 'utf-8')  # Append 'Z' end marker
             # Send the translated content using execute_serial_command
-            self.execute_serial_command(f"{self.translated_content}\n")
+            self.execute_serial_command(self.translated_content)
 
             if self.burn_index == 0:
                 self.execute_serial_command("W")
