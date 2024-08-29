@@ -286,15 +286,26 @@ class ScriptMode:
 
     def load_file_content(self, file_path):
         # Load and display the original script
-        with open(file_path, 'r') as file:
-            original_content = file.read()
-            self.original_text.delete(1.0, tk.END)
-            self.original_text.insert(tk.END, original_content)
+        try:
+            with open(file_path, 'r') as file:
+                original_content = file.read()
+                self.original_text.delete(1.0, tk.END)
+                self.original_text.insert(tk.END, original_content)
+        except FileNotFoundError:
+            print(f"File not found: {file_path}")
+            return
+        except Exception as e:
+            print(f"Error loading file: {e}")
+            return
 
         # Translate the script and display the translated content
-        self.translated_content = translate_script(file_path)
-        self.translated_text.delete(1.0, tk.END)
-        self.translated_text.insert(tk.END, self.translated_content)
+        try:
+            self.translated_content = translate_script(file_path)
+            self.translated_text.delete(1.0, tk.END)
+            self.translated_text.insert(tk.END, self.translated_content)
+        except Exception as e:
+            print(f"Error translating file: {e}")
+            return
 
         if self.burn_index == 0:
             self.execute_serial_command("W")
@@ -308,8 +319,9 @@ class ScriptMode:
             while not ScriptMode.STOP_FLAG.is_set():
                 while serial_comm.in_waiting > 0:
                     flash_ack = serial_comm.read(size=3).decode('utf-8').rstrip('\x00')
-        except:
-            print("Error reading flash ack")
+        except Exception as e:
+            print(f"Error reading flash ack: {e}")
+            return
         if flash_ack == "FIN":
             print("Flash successful")
         time.sleep(0.3)
@@ -320,32 +332,29 @@ class ScriptMode:
             print("No file selected to execute.")
             return
 
-        if selected_index[0] == 0:
-            curr_exe = 'T'
-        elif selected_index[0] == 1:
-            curr_exe = 'U'
-        elif selected_index[0] == 2:
-            curr_exe = 'V'
+        curr_exe = ['T', 'U', 'V'][selected_index[0]]
 
         selected_file = self.files[selected_index[0]]
         if self.translated_content:
             print(f"Executing translated script from {os.path.basename(selected_file)}:\n\n{self.translated_content}")
-            
+        else:
+            print("No translated content available to execute.")
+
         time.sleep(0.5)
-        self.execute_serial_command(curr_exe) # Send the execute command
+        self.execute_serial_command(curr_exe)  # Send the execute command
         time.sleep(0.5)
         serial_comm.reset_input_buffer()
         serial_comm.reset_output_buffer()
 
+        # Uncomment and move this to a separate method if you need the counter logic
         # while True:
         #     while serial_comm.in_waiting > 0:
         #         counter = serial_comm.read(size=3).decode('utf-8').rstrip('\x00')
-        # print(f"Counter: {counter}")
-        # while counter != "FIN": # Wait for the counter to reach the end
-        #     while 'F' not in counter:
-            # while serial_comm.in_waiting > 0:
-            #     counter = serial_comm.read(size=3).decode('utf-8').rstrip('\x00')
-
+        #     print(f"Counter: {counter}")
+        #     while counter != "FIN":  # Wait for the counter to reach the end
+        #         while 'F' not in counter:
+        #             while serial_comm.in_waiting > 0:
+        #                 counter = serial_comm.read(size=3).decode('utf-8').rstrip('\x00')
 
     def close_script_mode(self):
         ScriptMode.STOP_FLAG.set()
@@ -357,6 +366,7 @@ class ScriptMode:
         x = (screen_width - width) // 2
         y = (screen_height - height) // 2
         window.geometry(f"{width}x{height}+{x}+{y}")
+
 
 
 class CalibrationMode:
