@@ -291,10 +291,8 @@ class ScriptMode:
                 self.original_text.insert(tk.END, original_content)
         except FileNotFoundError:
             print(f"File not found: {file_path}")
-            return
         except Exception as e:
             print(f"Error loading file: {e}")
-            return
         translated_content = None
         # Translate the script and display the translated content
         try:
@@ -303,7 +301,6 @@ class ScriptMode:
             self.translated_text.insert(tk.END, translated_content)
         except Exception as e:
             print(f"Error translating file: {e}")
-            return
 
         if self.burn_index == 0:
             self.execute_serial_command("W")
@@ -319,7 +316,6 @@ class ScriptMode:
                     flash_ack = serial_comm.read(size=3).decode('utf-8').rstrip('\x00')
         except Exception as e:
             print(f"Error reading flash ack: {e}")
-            return
         if flash_ack == "FIN":
             print("Flash successful")
         time.sleep(0.3)
