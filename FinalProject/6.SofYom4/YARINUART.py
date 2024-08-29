@@ -6,6 +6,7 @@ import threading
 import tkinter as tk
 from tkinter import colorchooser, filedialog, messagebox, ttk
 import mouse
+import time
 
 serial_comm = None
 
@@ -196,6 +197,7 @@ class Paint:
 
 
 class ScriptMode:
+    STOP_FLAG = threading.Event()
     def __init__(self, master):
         self.master = master
         self.top = tk.Toplevel(master)
@@ -241,7 +243,7 @@ class ScriptMode:
         self.select_button = ttk.Button(self.top, text="Select Files", command=self.select_files)
         self.select_button.grid(row=3, column=0, padx=10, pady=10, sticky='ew')
 
-        self.load_button = ttk.Button(self.top, text="Load File", command=self.load_file)
+        self.load_button = ttk.Button(self.top, text="Flash File", command=self.load_file)
         self.load_button.grid(row=3, column=1, padx=10, pady=10, sticky='ew')
 
         self.execute_button = ttk.Button(self.top, text="Execute Script", command=self.execute_script)
@@ -292,11 +294,36 @@ class ScriptMode:
         self.translated_text.delete(1.0, tk.END)
         self.translated_text.insert(tk.END, translated_content)
 
+        if burn_index == 0:
+            self.execute_serial_command("W")
+        elif burn_index == 1:
+            self.execute_serial_command("X")
+        elif burn_index == 2:
+            self.execute_serial_command("Y")
+        burn_index += 1
+
+        try:
+            while not ScriptMode.STOP_FLAG.is_set():
+                while serial_comm.in_waiting > 0:
+                    flash_ack = serial_comm.read(size=3).decode('utf-8').rstrip('\x00')
+        except:
+            print("Error reading flash ack")
+        if flash_ack == "FIN":
+            print("Flash successful")
+        time.sleep(0.3)
+
     def execute_script(self):
         selected_index = self.file_listbox.curselection()
         if not selected_index:
             print("No file selected to execute.")
             return
+
+        if selected_index[0] == 0:
+            curr_exe = 'T'
+        elif selected_index[0] == 1:
+            curr_exe = 'U'
+        elif selected_index[0] == 2:
+            curr_exe = 'V'
 
         selected_file = self.files[selected_index[0]]
         with open(selected_file, 'r') as file:
@@ -304,8 +331,24 @@ class ScriptMode:
             if script_content:
                 print(f"Executing script from {os.path.basename(selected_file)}:\n\n{script_content}")
                 # Here, you can add logic to execute the script content if needed
+        time.sleep(0.5)
+        self.execute_serial_command(curr_exe) # Send the execute command
+        time.sleep(0.5)
+        serial_comm.reset_input_buffer()
+        serial_comm.reset_output_buffer()
+
+        # while True:
+        #     while serial_comm.in_waiting > 0:
+        #         counter = serial_comm.read(size=3).decode('utf-8').rstrip('\x00')
+        # print(f"Counter: {counter}")
+        # while counter != "FIN": # Wait for the counter to reach the end
+        #     while 'F' not in counter:
+            # while serial_comm.in_waiting > 0:
+            #     counter = serial_comm.read(size=3).decode('utf-8').rstrip('\x00')
+
 
     def close_script_mode(self):
+        ScriptMode.STOP_FLAG.set()
         self.top.destroy()
 
     def center_window(self, window, width, height):
