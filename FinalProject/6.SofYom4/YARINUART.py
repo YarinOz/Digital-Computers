@@ -255,6 +255,7 @@ class ScriptMode:
         self.back_button.grid(row=4, column=0, columnspan=4, padx=10, pady=10, sticky='ew')
 
         self.files = []  # List to store selected file paths
+        self.translated_contents = [None, None, None]  # To store translated content for each file
         self.burn_index = 0
         self.execute_serial_command('S')  # Send script state
 
@@ -284,10 +285,10 @@ class ScriptMode:
             return  # No file selected
 
         selected_file = self.files[selected_index[0]]
-        self.load_file_content(selected_file)
+        self.load_file_content(selected_file, selected_index[0])
 
-    def load_file_content(self, file_path):
-        global translated_content
+    def load_file_content(self, file_path, index):
+        # global translated_content
         def run():
             try:
                 # Load and display the original script
@@ -301,17 +302,17 @@ class ScriptMode:
                 print(f"Error loading file: {e}")
                 return
             
-            translated_content = None
+            # translated_content = None
             # Translate the script and display the translated content
             try:
-                translated_content = translate_script(file_path)
+                self.translated_contents[index] = translate_script(file_path)
                 self.translated_text.delete(1.0, tk.END)
-                self.translated_text.insert(tk.END, translated_content)
+                self.translated_text.insert(tk.END, self.translated_contents[index])
             except Exception as e:
                 print(f"Error translating file: {e}")
                 return
             
-            translated_content = bytes(translated_content + 'Z', 'utf-8')  # Append 'Z' end marker
+            translated_content = bytes(self.translated_contents[index] + 'Z', 'utf-8')  # Append 'Z' end marker
             # Send the translated content using execute_serial_command
             print(f"Flashing translated script from {os.path.basename(file_path)}:\n\n{translated_content}")
             self.execute_serial_command(translated_content, file=True)
