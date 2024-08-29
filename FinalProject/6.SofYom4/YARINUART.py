@@ -306,6 +306,9 @@ class ScriptMode:
                 print(f"Error translating file: {e}")
                 return
 
+            # Send the translated content using execute_serial_command
+            self.execute_serial_command(f"{self.translated_content}\n")
+
             if self.burn_index == 0:
                 self.execute_serial_command("W")
             elif self.burn_index == 1:
