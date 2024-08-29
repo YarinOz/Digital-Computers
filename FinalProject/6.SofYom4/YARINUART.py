@@ -258,8 +258,11 @@ class ScriptMode:
         self.burn_index = 0
         self.execute_serial_command("s")  # Send script state
 
-    def execute_serial_command(self, command):
-        thread = threading.Thread(target=serial_write, args=(bytes(command, 'ascii'),))
+    def execute_serial_command(self, command, file=False):
+        if file:
+            thread = threading.Thread(target=serial_write, )
+        else:
+            thread = threading.Thread(target=serial_write, args=(bytes(command, 'ascii'),))
         thread.start()
 
     def select_files(self):
@@ -308,7 +311,7 @@ class ScriptMode:
             
             self.translated_content = bytes(self.translated_content + 'Z', 'utf-8')  # Append 'Z' end marker
             # Send the translated content using execute_serial_command
-            self.execute_serial_command(self.translated_content)
+            self.execute_serial_command(self.translated_content, file=True)
 
             if self.burn_index == 0:
                 self.execute_serial_command("W")
