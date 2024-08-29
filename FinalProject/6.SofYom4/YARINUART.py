@@ -260,7 +260,7 @@ class ScriptMode:
 
     def execute_serial_command(self, command, file=False):
         if file:
-            thread = threading.Thread(target=serial_write, )
+            thread = threading.Thread(target=serial_write, args=(command,))
         else:
             thread = threading.Thread(target=serial_write, args=(bytes(command, 'ascii'),))
         thread.start()
