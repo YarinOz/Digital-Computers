@@ -330,6 +330,7 @@ class ScriptMode:
                 while not ScriptMode.STOP_FLAG.is_set():
                     while serial_comm.in_waiting > 0:
                         flash_ack = serial_comm.read(size=3).decode('utf-8').rstrip('\x00')
+                        print(f"Flash ack: {flash_ack}")
             except Exception as e:
                 print(f"Error reading flash ack: {e}")
                 return
@@ -344,6 +345,7 @@ class ScriptMode:
 
     def execute_script(self):
         selected_index = self.file_listbox.curselection()
+        print(selected_index)
         if not selected_index:
             print("No file selected to execute.")
             return
