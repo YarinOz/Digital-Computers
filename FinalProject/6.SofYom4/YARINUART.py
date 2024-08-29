@@ -308,6 +308,7 @@ class ScriptMode:
                 self.translated_contents[index] = translate_script(file_path)
                 self.translated_text.delete(1.0, tk.END)
                 self.translated_text.insert(tk.END, self.translated_contents[index])
+                print(f"Translated content: {self.translated_contents[index]}")
             except Exception as e:
                 print(f"Error translating file: {e}")
                 return
