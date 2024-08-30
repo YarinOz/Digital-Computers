@@ -252,7 +252,7 @@ class ScriptMode:
         self.load_button.grid(row=3, column=1, padx=10, pady=10, sticky='ew')
 
         self.execute_button = ttk.Button(self.top, text="Execute Script", command=self.execute_script)
-        self.execute_button.grid(row=3, column=2, padx=10, pady=10, sticky='ew')
+        self.execute_button.grid(row=3, column=3, padx=10, pady=10, sticky='ew')
 
         # Add a "Back" button
         self.back_button = ttk.Button(self.top, text="Back", command=self.close_script_mode)
@@ -326,6 +326,7 @@ class ScriptMode:
             print(f"Flashing translated script from {os.path.basename(file_path)}:\n\n{translated_content}")
             self.execute_serial_command(translated_content, file=True)
             print("Flashing complete")
+            print(translated_content) # Debug print
 
             # Add flashed file to execution list
             if file_path not in self.flashed_files:
@@ -371,7 +372,7 @@ class ScriptMode:
 
         time.sleep(0.5)
         self.execute_serial_command(curr_exe)  # Send the execute command
-        time.sleep(0.5)
+        time.sleep(0.7)
         serial_comm.reset_input_buffer()
         serial_comm.reset_output_buffer()
 
