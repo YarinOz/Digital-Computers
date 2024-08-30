@@ -251,14 +251,14 @@ class ScriptMode:
         self.select_button.grid(row=3, column=0, padx=10, pady=10, sticky='ew')
 
         self.load_button = ttk.Button(self.top, text="Flash File", command=self.load_file)
-        self.load_button.grid(row=3, column=1, columnspan=4,padx=10, pady=10, sticky='ew')
+        self.load_button.grid(row=3, column=1, columnspan=2, padx=10, pady=10, sticky='ew')  # Center under the two text widgets
 
         self.execute_button = ttk.Button(self.top, text="Execute Script", command=self.execute_script)
         self.execute_button.grid(row=3, column=3, padx=10, pady=10, sticky='ew')
 
         # Add a "Back" button
         self.back_button = ttk.Button(self.top, text="Back", command=self.close_script_mode)
-        self.back_button.grid(row=4, column=0, columnspan=2, padx=10, pady=10, sticky='ew')
+        self.back_button.grid(row=4, column=0, columnspan=4, padx=10, pady=10, sticky='ew')  # Spanning the entire lower row
 
         self.files = []  # List to store selected file paths
         self.translated_contents = [None, None, None]  # To store translated content for each file
