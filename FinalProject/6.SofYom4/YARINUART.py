@@ -328,7 +328,6 @@ class ScriptMode:
             print(f"Flashing translated script from {os.path.basename(file_path)}:\n\n{translated_content}")
             self.execute_serial_command(translated_content, file=True)
             print("Flashing complete")
-            print(translated_content) # Debug print
 
             # Add flashed file to execution list
             if file_path not in self.flashed_files:
@@ -344,6 +343,7 @@ class ScriptMode:
                 self.execute_serial_command('Y')
             self.burn_index += 1
 
+            time.sleep(0.3)
             try:
                 while not ScriptMode.STOP_FLAG.is_set():
                     while serial_comm.in_waiting > 0:
