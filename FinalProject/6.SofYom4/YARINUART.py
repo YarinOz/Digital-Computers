@@ -198,8 +198,8 @@ class Paint:
 
 class ScriptMode:
     STOP_FLAG = threading.Event()
+
     def __init__(self, master):
-        # self.translated_content = None
         self.master = master
         self.top = tk.Toplevel(master)
         self.top.title("Script Mode")
@@ -240,6 +240,10 @@ class ScriptMode:
         self.translated_text = tk.Text(self.top, width=40, height=20)
         self.translated_text.grid(row=2, column=2, padx=10, pady=10, sticky='nsew')
 
+        # Flashed Files Listbox (Execution Listbox)
+        self.execution_listbox = tk.Listbox(self.top, width=30, height=15, selectmode=tk.SINGLE)
+        self.execution_listbox.grid(row=2, column=3, padx=10, pady=10, rowspan=1, sticky='ns')
+
         # Buttons
         self.select_button = ttk.Button(self.top, text="Select Files", command=self.select_files)
         self.select_button.grid(row=3, column=0, padx=10, pady=10, sticky='ew')
@@ -256,6 +260,7 @@ class ScriptMode:
 
         self.files = []  # List to store selected file paths
         self.translated_contents = [None, None, None]  # To store translated content for each file
+        self.flashed_files = []  # To store the flashed files for execution
         self.burn_index = 0
         self.execute_serial_command('S')  # Send script state
 
@@ -279,6 +284,11 @@ class ScriptMode:
         if self.files:
             self.file_label.config(text=f"{len(self.files)} file(s) selected")
 
+    def update_execution_listbox(self):
+        self.execution_listbox.delete(0, tk.END)
+        for file in self.flashed_files:
+            self.execution_listbox.insert(tk.END, os.path.basename(file))
+
     def load_file(self):
         selected_index = self.file_listbox.curselection()
         if not selected_index:
@@ -288,7 +298,6 @@ class ScriptMode:
         self.load_file_content(selected_file, selected_index[0])
 
     def load_file_content(self, file_path, index):
-        # global translated_content
         def run():
             try:
                 # Load and display the original script
@@ -302,7 +311,6 @@ class ScriptMode:
                 print(f"Error loading file: {e}")
                 return
             
-            # translated_content = None
             # Translate the script and display the translated content
             try:
                 self.translated_contents[index] = translate_script(file_path)
@@ -318,6 +326,11 @@ class ScriptMode:
             print(f"Flashing translated script from {os.path.basename(file_path)}:\n\n{translated_content}")
             self.execute_serial_command(translated_content, file=True)
             print("Flashing complete")
+
+            # Add flashed file to execution list
+            if file_path not in self.flashed_files:
+                self.flashed_files.append(file_path)
+                self.update_execution_listbox()
 
             time.sleep(0.5)
             if self.burn_index == 0:
@@ -341,28 +354,26 @@ class ScriptMode:
         # Run the function in a separate thread
         threading.Thread(target=run).start()
 
-
     def execute_script(self):
-        selected_index = self.file_listbox.curselection()
-        print(selected_index[0])
+        selected_index = self.execution_listbox.curselection()
         if not selected_index:
             print("No file selected to execute.")
             return
-        if (selected_index[0] == 0):
+
+        if selected_index[0] == 0:
             curr_exe = 'T'
-        elif (selected_index[0] == 1):
+        elif selected_index[0] == 1:
             curr_exe = 'U'
-        elif (selected_index[0] == 2):
+        elif selected_index[0] == 2:
             curr_exe = 'V'
 
-        selected_file = self.files[selected_index[0]]
+        selected_file = self.flashed_files[selected_index[0]]
 
         time.sleep(0.5)
         self.execute_serial_command(curr_exe)  # Send the execute command
         time.sleep(0.5)
         serial_comm.reset_input_buffer()
         serial_comm.reset_output_buffer()
-
 
     def close_script_mode(self):
         ScriptMode.STOP_FLAG.set()
@@ -374,6 +385,7 @@ class ScriptMode:
         x = (screen_width - width) // 2
         y = (screen_height - height) // 2
         window.geometry(f"{width}x{height}+{x}+{y}")
+
 
 
 class CalibrationMode:
