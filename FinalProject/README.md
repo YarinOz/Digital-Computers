@@ -1,8 +1,11 @@
-Overview:
+# Lab 5 (Final Project) : UART Communication with MSP430G2553
+
+## Overview
+
 This project involves controlling various hardware components, such as stepper motors, LCDs, and joysticks, through GPIO and UART interfaces. Below is a detailed description of each source file and the functions within them.
 
-Source Files:
-api.c
+## Source Files
+### api.c
 
 Purpose: This file contains functions that provide a higher-level API for controlling the stepper motor, joystick, and script execution. It handles the interactions with the hardware through lower-level functions defined in other modules.
 Functions:
@@ -16,7 +19,7 @@ ScriptFunc(): Executes a predefined script of commands stored in flash memory.
 ExecuteScript(): Processes and executes individual script commands.
 inc_lcd(int X), dec_lcd(int X), rra_lcd(char X): LCD control functions for displaying and rotating numbers.
 
-bsp.c
+### bsp.c
 
 Purpose: This file configures the Board Support Package (BSP), including GPIO setup, timers, UART, and ADC configurations.
 Functions:
@@ -26,13 +29,13 @@ TIMER_A0_config(unsigned int counter): Configures Timer A with a specified count
 UART_init(): Initializes the UART for serial communication.
 ADCconfig(): Configures the ADC for reading joystick values.
 
-flash.c
+### flash.c
 
 Purpose: This file provides functions for writing to the flash memory, which is used for storing scripts and other data.
 Functions:
 write_to_mem(): Writes data to flash memory from a specified location.
 
-halGPIO.c
+### halGPIO.c
 
 Purpose: This file implements hardware abstraction layer (HAL) functions for interacting with the GPIO, timers, and other low-level components.
 Functions:
@@ -47,7 +50,7 @@ atan2_fp(int16_t y_fp, int16_t x_fp): Calculates the arctangent of y/x using fix
 Various interrupt service routines (ISRs) for handling timer, ADC, UART, and joystick events.
 lcd_cmd(unsigned char c), lcd_data(unsigned char c), lcd_puts(const char * s), lcd_init(), lcd_strobe(): LCD control functions for sending commands, displaying data, and initializing the LCD.
 
-main.c
+### main.c
 
 Purpose: This is the main entry point of the program, which initializes the system and contains the main control loop to manage different operational states.
 Functions:
