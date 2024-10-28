@@ -319,6 +319,7 @@ void __attribute__ ((interrupt(TIMER1_A1_VECTOR))) TIMER1_A1_ISR (void)
       case  TA1IV_NONE: break;              // Vector  0:  No interrupt
       case  TA1IV_TACCR1:                   // Vector  2:  TACCR1 CCIFG
           TA1CTL &= ~(TAIFG);
+          BuzzPortOut = 1-BuzzPortOut;
         break;
       case TA1IV_TACCR2: break;
       case TA1IV_6: break;                  // Vector  6:  Reserved CCIFG
@@ -369,23 +370,6 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
             Love_index++; // Increment index after checking the current character
         }
     }
-//    switch(lpm_mode){
-//        case mode0:
-//            LPM0_EXIT; // must be called from ISR only
-//            break;
-//        case mode1:
-//            LPM1_EXIT; // must be called from ISR only
-//            break;
-//        case mode2:
-//            LPM2_EXIT; // must be called from ISR only
-//            break;
-//        case mode3:
-//            LPM3_EXIT; // must be called from ISR only
-//            break;
-//        case mode4:
-//            LPM4_EXIT; // must be called from ISR only
-//            break;
-//        }
 }
 //*********************************************************************
 //                         RX ISR

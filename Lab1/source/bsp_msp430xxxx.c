@@ -16,10 +16,6 @@ void GPIOconfig(void){
   LEDsArrPortDir |= 0xFF;             // output dir
   LEDsArrPort = 0x00;				  // clear all LEDs
   
-  // Switches Setup
-//   SWsArrPortSel &= ~0xF0;
-//   SWsArrPortDir &= ~0x70;
-  
   // PushButtons Setup
   PBsArrPortOut &= ~0x80;          // 2.7 output , 2.0-2.6 input
   PBsArrPortSel &= ~0xFF;

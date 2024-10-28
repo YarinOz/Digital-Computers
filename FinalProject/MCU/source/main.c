@@ -2,8 +2,8 @@
 #include  "../header/app.h"    		// private library - APP layer
 #include  <stdio.h>
 
-//------------------------Roy Kislev-----------------------------
-//----------------------Michael Grenader-------------------------
+// Final Procject in DCS lab by Yarin Oziel & Omer Kariti
+// 2024 all rights reserved
 
 enum FSMstate state;
 enum Stepperstate stateStepp;
@@ -24,93 +24,61 @@ void main(void){
 	case state0: //   StepperUsingJoyStick
 	    IE2 |= UCA0RXIE; // Enable USCI_A0 RX interrupt
 	    switch(stateStepp){
-	    case stateAutoRotate:
-
-	        while(rotateIFG)
-	        {    delay(500);
-	            curr_counter++;
-	            Stepper_clockwise(200); }
-
-
+	    case stateAutoRotate: // start rotate
+	        while(rotateIFG){START_TIMERA0(600); curr_counter++; Stepper_clockwise(); }
 	        break;
 
-        case stateStopRotate:
+        case stateStopRotate: // stop rotate
             break;
 
-        case stateJSRotate:
-            counter = 514;
+        case stateJSRotate: // rotate using joystick
+            counter=513;   // value from calibration
             StepperUsingJoyStick();
             break;
+
         case stateDefault:
-         //   counter = 514;
-        //    motorGoToPosition(360, 1);
-            __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ int until Byte RXed
+            __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ until Byte in RXed
             break;
 	    }
 	    break;
 
-	case state1: // Paint
+	case state1: // Paint with joystick
 	    JoyStickIntEN |= BIT5;
-	 //   IE2 |= UCA0RXIE; // Enable USCI_A0 RX interrupt
-	    while (state == state1){
-	        JoyStickADC_Painter();
-	    }
+	    while (state == state1){JoyStick_Painter();}
         JoyStickIntEN &= ~BIT5;
 	    break;
 
-	case state2: // Calibrate
-        IE2 |= UCA0RXIE;                          // Enable USCI_A0 RX interrupt
+	case state2: // Calibrate stepper motor
+        IE2 |= UCA0RXIE;     // Enable USCI_A0 RX interrupt
 
-        switch(stateStepp){
+        switch(stateStepp){ // Stepper motor calibration
         case stateDefault:
+            JoyStickIntEN |= BIT5;
             __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ int until Byte RXed
             break;
 
         case stateAutoRotate: // start rotate
             counter = 0;
-            while(rotateIFG) {delay(500); Stepper_clockwise(100); counter++; }
+            while(rotateIFG) {START_TIMERA0(600);Stepper_clockwise(); counter++; }
             break;
 
-        case stateStopRotate: // stop and set phi
+        case stateStopRotate: // stop rotate, return counter and phi
+            JoyStickIntEN &= ~BIT5;
             calibrate();
             break;
         }
 	    break;
 
-	case state3:  //Script
-        IE2 |= UCA0RXIE;                          // Enable USCI_A0 RX interrupt
+	case state3:  //Script mode
+        IE2 |= UCA0RXIE;     // Enable USCI_A0 RX interrupt
 	    while ( state == state3){
 	        ScriptFunc();
 	    }
 		break;
 		
-	case state4: //
+	case state4: // optional
 
 		break;
-
-    case state5: //
-
-        break;
-
-    case state6: //
-
-        break;
-
-    case state7: //
-
-        break;
-
-    case state8: //
-
-        break;
-		
 	}
   }
 }
-
-  
-  
-  
-  
-  
-  

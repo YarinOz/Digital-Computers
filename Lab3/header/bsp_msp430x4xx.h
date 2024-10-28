@@ -70,8 +70,6 @@
 
 extern void GPIOconfig(void);
 extern void TIMER0_A0_config(void);
-//extern void TIMER1_A1_config(void);
-// extern void ADCconfig(void);
 extern void DMA_config(void);
 extern void DMA_config_RT(void);
 extern void StopAllTimers(void);

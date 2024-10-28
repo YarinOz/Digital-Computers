@@ -25,7 +25,6 @@ void GPIOconfig(void){
 
   // PushButtons Setup
   PBsArrPortSel &= ~0x01;           //
-//  PBsArrPortOut &= ~0x01;            // Set P2Out to '0'
   PBsArrPortDir &= ~0x01;            // P2.1 - Input ('0')
   PBsArrIntEdgeSel |= 0x30;         // pull-down mode  P2.1 - '0'
   PBsArrIntEdgeSel &= ~0x04;         // pull-down mode  P2.1 - '0'

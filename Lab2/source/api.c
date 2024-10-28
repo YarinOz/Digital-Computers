@@ -219,10 +219,6 @@ void GenTones(){
         unsigned int Nadc = ADC10MEM;  // 0-1023 , 1024 voltage levels
         float coeff = 1.465;  // coeff = 1500 / 1023; 
         float f_out = coeff * Nadc + 1000;  // Choose Linear Mapping
-        // f_out = m*Nadc + n
-        // f_out = (Nadc/0X3FF)*1.5K + 1K
-        // for 0: m*0 + n = 1 => n = 1K
-        // for 1023: m*1023 + n = 2.5 => m = 1500/1023
 
         float SMCLK_FREQ = 1048576; // SMCLK freq 2^20
         unsigned int period_to_pwm = SMCLK_FREQ/f_out;

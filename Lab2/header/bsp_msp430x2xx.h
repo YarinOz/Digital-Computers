@@ -6,11 +6,6 @@
 #define   debounceVal      250
 #define   LEDs_SHOW_RATE   0xFFFF  // 62_5ms
 
-// LEDs abstraction
-// #define LEDsArrPort        P1OUT
-// #define LEDsArrPortDir     P1DIR
-// #define LEDsArrPortSel     P1SEL
-
 // Switches abstraction
 #define SWsArrPort         P2IN
 #define SWsArrPortDir      P2DIR

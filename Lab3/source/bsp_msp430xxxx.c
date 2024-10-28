@@ -19,32 +19,17 @@ void GPIOconfig(void){
   LCD_DATA_DIR |= 0xF0;    // P1.4-P1.7 To Output('1')
   LCD_DATA_SEL &= ~0xF0;   // Bit clear P2.4-P2.7
   LCD_CTL_SEL  &= ~0xE0;   // Bit clear P2.5-P2.7
-  
-  // Generator Setup
-//   GenPortDir &=  ~BIT4;               // P2.4 Input Capture = '1'
-//   GenPortSel |=  BIT4;              // P2.4 Select = '1'
 
-  // Buzzer Setup
-//   BuzzPortDir |= BIT2;             // P2.2 Output compare - '1'
-//   BuzzPortSel |= BIT2;             // P2.2 Select = '1'
-//   BuzzPortOut &= ~BIT2;             // P2.2 out = '0'
-
-    // Keypad Setup
+  // Keypad Setup
   KeypadPortSel &= ~0xFF;
   KeypadPortDIR = 0x0F; //10.0-10.3 output, 10.4-10.7 input
   KeypadPortOUT = 0x00; // CLR output
-    // Keypad IRQ Setup
+  // Keypad IRQ Setup
   KeypadIRQPortSel &= ~0x02;
   KeypadIRQPortDir &= ~0x02;             // P2.1 input
   KeypadIRQIntEdgeSel |= 0x02;         // pull-up mode  P2.1 - '1'
   KeypadIRQIntEn |= 0x02;               // P2.1 - '1'
   KeypadIRQIntPend &= ~0x02;            // clear pending interrupts P2.1
-
- // Switches Setup
-//   SWsArrPortDir  &= 0xFE;
-//   SWsArrPortSel  &= 0xFE;
-//   SWsArrIntEn  |= 0x01;
-//   SWsArrIntPend &= ~0xFF;           // clear pending interrupts P2.0-2
 
   // PushButtons Setup
   PBsArrPortSel &= ~0x0F;           //
@@ -78,14 +63,6 @@ void TIMERB_config(void){
     TB0CTL = TBSSEL_2 + MC_3 + ID_3; //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
     __bis_SR_register(GIE);       //interrupt
 }
-//------------------------------------------------------------------------------------- 
-//            ADC configuration
-//-------------------------------------------------------------------------------------
-// void ADCconfig(void){
-//       ADC10CTL0 = ADC10SHT_2 + ADC10ON+ SREF_0 + ADC10IE;  // 16*ADCLK+ Turn on, set ref to Vcc and Gnd, and Enable Interrupt
-//       ADC10CTL1 = INCH_3 + ADC10SSEL_3;     // Input A3 and SMCLK, was |
-//       ADC10AE0 |= BIT3;                         // P1.3 ADC option select
-// }
 //-------------------------------------------------------------------------------------
 //            DMA configuration 
 //-------------------------------------------------------------------------------------

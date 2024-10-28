@@ -3,30 +3,29 @@
 #include "stdio.h"
 #include "stdint.h"
 #include "string.h"
-//#include "stdlib.h"
 
+#define PI_FIXED 3.14159265358979323846
 
 // Global Variables
 int j=0;
 char *ptr1, *ptr2, *ptr3;
-short MSBIFG = 0;
-short stateIFG = 1; // 0-state changed -> send state(pb pressed)
-int rotateIFG = 1;
+short MSBIFG = 1;
+short dataIFG = 1; // 0-state changed -> send state(pb pressed)
+short calibrateIFG = 1;  //0-calibrate changed -> send stop(pb pressed)
+int rotateIFG = 1; /////Flag to rotate by clicking
 unsigned int delay_time = 500;
 const unsigned int timer_half_sec = 65535;
 unsigned int i = 0;
 unsigned int tx_index;
 char counter_str[4];
-short Vr[] = {0, 0}; //Vr[0]=Vry , Vr[1]=Vrx
+short Vr[] = {0, 0}; //Vr[0]=Vry , Vr[1]=Vrx//The volt of the joystick
 const short state_changed[] = {1000, 1000}; // send if button pressed - state changed
 char stringFromPC[80];
 char file_content[80];
 int ExecuteFlag = 0;
 int FlashBurnIFG = 0;
 int SendFlag = 0;
-int startRotateLEDs = 0x10;
-int* rotateLEDs = &startRotateLEDs;
-int counter = 514;
+int counter = 513; //After testing it the amount for a complete cycle
 char step_str[4];
 char finish_str[3] = "FIN";
 int curr_counter = 0;
@@ -38,151 +37,12 @@ void sysConfig(void){
 	GPIOconfig();
 	ADCconfig();
 	StopAllTimers();
+	lcd_init();
+	lcd_clear();
 	UART_init();
 }
 //--------------------------------------------------------------------
-//--------------------------------------------------------------------
-// 				Set Byte to Port
-//--------------------------------------------------------------------
-void print2RGB(char ch){
-    RGBArrPortOut = ch;
-} 
-
-//---------------------------------------------------------------------
-//            LCD
-//---------------------------------------------------------------------
-//******************************************************************
-// initialize the LCD
-//******************************************************************
-void lcd_init(){
-
-    char init_value;
-
-    if (LCD_MODE == FOURBIT_MODE) init_value = 0x3 << LCD_DATA_OFFSET;
-    else init_value = 0x3F;
-
-    LCD_RS_DIR(OUTPUT_PIN);
-    LCD_EN_DIR(OUTPUT_PIN);
-    LCD_RW_DIR(OUTPUT_PIN);
-    LCD_DATA_DIR |= OUTPUT_DATA;
-    LCD_RS(0);
-    LCD_EN(0);
-    LCD_RW(0);
-
-    DelayMs(15);
-    LCD_DATA_WRITE &= ~OUTPUT_DATA;
-    LCD_DATA_WRITE |= init_value;
-    lcd_strobe();
-    DelayMs(5);
-    LCD_DATA_WRITE &= ~OUTPUT_DATA;
-    LCD_DATA_WRITE |= init_value;
-    lcd_strobe();
-    DelayUs(200);
-    LCD_DATA_WRITE &= ~OUTPUT_DATA;
-    LCD_DATA_WRITE |= init_value;
-    lcd_strobe();
-
-    if (LCD_MODE == FOURBIT_MODE){
-        LCD_WAIT; // may check LCD busy flag, or just delay a little, depending on lcd.h
-        LCD_DATA_WRITE &= ~OUTPUT_DATA;
-        LCD_DATA_WRITE |= 0x2 << LCD_DATA_OFFSET; // Set 4-bit mode
-        lcd_strobe();
-        lcd_cmd(0x28); // Function Set
-    }
-    else lcd_cmd(0x3C); // 8bit,two lines,5x10 dots
-
-    lcd_cmd(0xF); //Display On, Cursor On, Cursor Blink
-    lcd_cmd(0x1); //Display Clear
-    lcd_cmd(0x6); //Entry Mode
-    lcd_cmd(0x80); //Initialize DDRAM address to zero
-}
-//******************************************************************
-// lcd strobe functions
-//******************************************************************
-void lcd_strobe(){
-  LCD_EN(1);
-  asm("NOP");
- // asm("NOP");
-  LCD_EN(0);
-}
-//******************************************************************
-// send a command to the LCD
-//******************************************************************
-void lcd_cmd(unsigned char c){
-
-    LCD_WAIT; // may check LCD busy flag, or just delay a little, depending on lcd.h
-
-    if (LCD_MODE == FOURBIT_MODE)
-    {
-        LCD_DATA_WRITE &= ~OUTPUT_DATA;// clear bits before new write
-        LCD_DATA_WRITE |= ((c >> 4) & 0x0F) << LCD_DATA_OFFSET;
-        lcd_strobe();
-        LCD_DATA_WRITE &= ~OUTPUT_DATA;
-        LCD_DATA_WRITE |= (c & (0x0F)) << LCD_DATA_OFFSET;
-        lcd_strobe();
-    }
-    else
-    {
-        LCD_DATA_WRITE = c;
-        lcd_strobe();
-    }
-}
-//******************************************************************
-// send data to the LCD
-//******************************************************************
-void lcd_data(unsigned char c){
-
-    LCD_WAIT; // may check LCD busy flag, or just delay a little, depending on lcd.h
-
-    LCD_DATA_WRITE &= ~OUTPUT_DATA;
-    LCD_RS(1);
-    if (LCD_MODE == FOURBIT_MODE)
-    {
-            LCD_DATA_WRITE &= ~OUTPUT_DATA;
-            LCD_DATA_WRITE |= ((c >> 4) & 0x0F) << LCD_DATA_OFFSET;
-            lcd_strobe();
-            LCD_DATA_WRITE &= (0xF0 << LCD_DATA_OFFSET) | (0xF0 >> 8 - LCD_DATA_OFFSET);
-            LCD_DATA_WRITE &= ~OUTPUT_DATA;
-            LCD_DATA_WRITE |= (c & 0x0F) << LCD_DATA_OFFSET;
-            lcd_strobe();
-    }
-    else
-    {
-            LCD_DATA_WRITE = c;
-            lcd_strobe();
-    }
-
-    LCD_RS(0);
-}
-//******************************************************************
-// write a string of chars to the LCD
-//******************************************************************
-void lcd_puts(const char * s){
-
-    while(*s)
-        lcd_data(*s++);
-}
-
-//----------------------Int to String---------------------------------
-void int2str(char *str, unsigned int num){
-    int strSize = 0;
-    long tmp = num, len = 0;
-    int j;
-    // Find the size of the intPart by repeatedly dividing by 10
-    while(tmp){
-        len++;
-        tmp /= 10;
-    }
-    // Print out the numbers in reverse
-    for(j = len - 1; j >= 0; j--){
-        str[j] = (num % 10) + '0';
-        num /= 10;
-    }
-    strSize += len;
-    str[strSize] = '\0';
-}
-//--------------------------------------------------------------------
-//              Send FINISH to PC
+//              Send FINISH to PC // Finish current task
 //--------------------------------------------------------------------
 void send_finish_to_PC(){
     finishIFG = 1;
@@ -208,9 +68,30 @@ void send_degree_to_PC(){
 //---------------------------------------------------------------------
 //            General Function
 //---------------------------------------------------------------------
+void int2str(char *str, unsigned int num){
+    int strSize = 0;
+    long tmp = num, len = 0;
+    int j;
+    if (tmp == 0){
+        str[strSize] = '0';
+        return;
+    }
+    // Find the size of the intPart by repeatedly dividing by 10
+    while(tmp){
+        len++;
+        tmp /= 10;
+    }
+
+    // Print out the numbers in reverse
+    for(j = len - 1; j >= 0; j--){
+        str[j] = (num % 10) + '0';
+        num /= 10;
+    }
+    strSize += len;
+    str[strSize] = '\0';
+}
 //-----------------------------------------------------------------------
-
-
+//                          hex2int
 //-----------------------------------------------------------------------
 uint32_t hex2int(char *hex) {
     uint32_t val = 0;
@@ -228,66 +109,32 @@ uint32_t hex2int(char *hex) {
     return val;
 }
 //-----------------------------------------------------------------------
-void motorGoToPosition(uint32_t stepper_degrees, char script_state){
+//                         print_deg_to_lcd
+//-----------------------------------------------------------------------
+void print_deg_to_lcd(float phi) {
+    int ipart = (int)phi;
+    float fpart = phi - (float)ipart;
+    int afterdigit = (int) (fpart * 1000);
+    char afterDigit_str[4];
+    char beforeDigit_str[1];
+    int2str(beforeDigit_str, ipart);
+    int2str(afterDigit_str, afterdigit);
+    lcd_clear();
+    lcd_home();
+    if (ipart == 0) lcd_puts("0");
+    else lcd_puts(beforeDigit_str);
+    lcd_puts(".");
+    lcd_puts(afterDigit_str);
+    lcd_puts(" [deg]");
+    START_TIMERA0(65535);
 
-    int clicks_cnt;
-    uint32_t step_counts;
-    uint32_t calc_temp;
-    calc_temp = stepper_degrees * counter;
-    step_counts = (calc_temp / 360); // how much clicks to wanted degree
-
-    //RK code
-    int diff = step_counts - curr_counter;
-    if(0 <= diff){ //move CW
-        for (clicks_cnt = 0; clicks_cnt < diff; clicks_cnt++){
-            curr_counter++;
-            Stepper_clockwise(150);
-            START_TIMERA0(10000);
-            //send data only if FINISH or stepper_deg (state 6)
-            if(script_state == '6'){
-                int2str(step_str, curr_counter);
-                send_degree_to_PC(); }
-        }
-        if (script_state == '7') {
-            int2str(step_str, curr_counter);
-           // sprintf(step_str, "%d", curr_counter);
-            send_degree_to_PC(); }
-        sprintf(step_str, "%s", "FFFF"); // add finish flag
-        send_degree_to_PC();
-    }
-    else{ // move CCW
-        for (clicks_cnt = diff; clicks_cnt < 0; clicks_cnt++){
-            curr_counter--;
-            Stepper_counter_clockwise(150);
-            START_TIMERA0(10000);
-            //send data only if FINISH or stepper_deg (state 6)
-            if(script_state == '6'){
-                int2str(step_str, curr_counter);
-          //      sprintf(step_str, "%d", curr_counter);
-                send_degree_to_PC(); }
-        }
-        if (script_state == '7') {
-            int2str(step_str, curr_counter);
-        //    sprintf(step_str, "%d", curr_counter);
-            send_degree_to_PC(); }
-        sprintf(step_str, "%s", "FFFF"); // add finish flag
-        send_degree_to_PC();
-    }
 }
-//--------------------------------------------------------------------
-//              Print Byte to 8-bit LEDs array
-//--------------------------------------------------------------------
-void print2LEDs(unsigned char ch){
-    LEDsArrPortOut = ch;
-}
-
 //----------------------Count Timer Calls---------------------------------
 void timer_call_counter(){
 
     unsigned int num_of_halfSec;
-
-    num_of_halfSec = (int) delay_time / half_sec;
     unsigned int res;
+    num_of_halfSec = (int) delay_time / half_sec;
     res = delay_time % half_sec;
     res = res * clk_tmp;
 
@@ -295,40 +142,11 @@ void timer_call_counter(){
         TIMER_A0_config(timer_half_sec);
         __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ int until Byte RXed
     }
-
     if (res > 1000){
         TIMER_A0_config(res);
         __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ int until Byte RXed
     }
 }
-//---------------------------------------------------------------------
-//            Enter from LPM0 mode
-//---------------------------------------------------------------------
-void enterLPM(unsigned char LPM_level){
-	if (LPM_level == 0x00) 
-	  _BIS_SR(LPM0_bits);     /* Enter Low Power Mode 0 */
-        else if(LPM_level == 0x01) 
-	  _BIS_SR(LPM1_bits);     /* Enter Low Power Mode 1 */
-        else if(LPM_level == 0x02) 
-	  _BIS_SR(LPM2_bits);     /* Enter Low Power Mode 2 */
-	else if(LPM_level == 0x03) 
-	  _BIS_SR(LPM3_bits);     /* Enter Low Power Mode 3 */
-        else if(LPM_level == 0x04) 
-	  _BIS_SR(LPM4_bits);     /* Enter Low Power Mode 4 */
-}
-//---------------------------------------------------------------------
-//            Enable interrupts
-//---------------------------------------------------------------------
-void enable_interrupts(){
-  _BIS_SR(GIE);
-}
-//---------------------------------------------------------------------
-//            Disable interrupts
-//---------------------------------------------------------------------
-void disable_interrupts(){
-  _BIC_SR(GIE);
-}
-
 //---------------------------------------------------------------------
 //            Start Timer With counter
 //---------------------------------------------------------------------
@@ -336,41 +154,53 @@ void START_TIMERA0(unsigned int counter){
     TIMER_A0_config(counter);
     __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
 }
-//---------------------------------------------------------------------
-//            Start Timer1 With counter
-//---------------------------------------------------------------------
-void START_TIMERA1(unsigned int counter){
-    TIMER_A1_config(counter);
-    __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
-}
-// ------------------------------------------------------------------
-//                     Polling delays
-//---------------------------------------------------------------------
-//******************************************************************
-// Delay usec functions
-//******************************************************************
-void DelayUs(unsigned int cnt){
+//---------------------------------------------------------------------------------
+//         Fixed point - returns degrees
+//----------------------------------------------------------------------------------
+int16_t atan2_fp(int16_t y_fp, int16_t x_fp)
+{
+    int32_t coeff_1 = 45;
+    int32_t coeff_1b = -56; // 56.24;
+    int32_t coeff_1c = 11;  // 11.25
+    int16_t coeff_2 = 135;
+    int16_t angle = 0;
+    int32_t r;
+    int32_t r3;
+    int16_t y_abs_fp = y_fp;
 
-    unsigned char i;
-    for(i=cnt ; i>0 ; i--) asm("nop"); // tha command asm("nop") takes raphly 1usec
+    if (y_abs_fp < 0)y_abs_fp = -y_abs_fp;
+    if (y_fp == 0)
+    {
+        if (x_fp >= 0)
+        {angle = 0;}
+        else
+        {angle = 180;}
+    }
+    else if (x_fp >= 0)
+    {
+        r = (((int32_t)(x_fp - y_abs_fp)) << MULTIPLY_FP_RESOLUTION_BITS) /((int32_t)(x_fp + y_abs_fp));
+        r3 = r * r;
+        r3 =  r3 >> MULTIPLY_FP_RESOLUTION_BITS;
+        r3 *= r;
+        r3 =  r3 >> MULTIPLY_FP_RESOLUTION_BITS;
+        r3 *= coeff_1c;
+        angle = (int16_t) (coeff_1 + ((coeff_1b * r + r3) >>MULTIPLY_FP_RESOLUTION_BITS)   );
+    }
+    else
+    {
+        r = (((int32_t)(x_fp + y_abs_fp)) << MULTIPLY_FP_RESOLUTION_BITS) /((int32_t)(y_abs_fp - x_fp));
+        r3 = r * r;
+        r3 =  r3 >> MULTIPLY_FP_RESOLUTION_BITS;
+        r3 *= r;
+        r3 =  r3 >> MULTIPLY_FP_RESOLUTION_BITS;
+        r3 *= coeff_1c;
+        angle = coeff_2 + ((int16_t)(((coeff_1b * r + r3) >>MULTIPLY_FP_RESOLUTION_BITS)));
+    }
 
-}
-//******************************************************************
-// Delay msec functions
-//******************************************************************
-void DelayMs(unsigned int cnt){
-
-    unsigned char i;
-    for(i=cnt ; i>0 ; i--) DelayUs(1000); // tha command asm("nop") takes raphly 1usec
-
-}
-//******************************************************************
-//            Polling based Delay function
-//******************************************************************
-void delay(unsigned int t){  //
-    volatile unsigned int i;
-
-    for(i=t; i>0; i--);
+    if (y_fp < 0)
+        return (360-angle);     // negate if in quad III or IV
+    else
+        return (angle);
 }
 //---------------**************************----------------------------
 //               Interrupt Services Routines
@@ -384,18 +214,17 @@ __interrupt void TimerA_ISR (void)
     StopAllTimers();
     LPM0_EXIT;
 }
-
 //*********************************************************************
 //                        TIMER A ISR
 //*********************************************************************
 #pragma vector = TIMER1_A0_VECTOR // For delay
 __interrupt void Timer1_A0_ISR (void)
 {
-    if(!TAIFG) { StopAllTimers();
+    if(!TAIFG) {
+    StopAllTimers();
     LPM0_EXIT;
     }
 }
-
 //*********************************************************************
 //                         ADC10 ISR
 //*********************************************************************
@@ -404,69 +233,9 @@ __interrupt void ADC10_ISR (void)
 {
    LPM0_EXIT;
 }
-
-//-------------------ATAN2- Fixed point - returns degrees---------------------------
-int16_t atan2_fp(int16_t y_fp, int16_t x_fp)
-{
-    int32_t coeff_1 = 45;
-    int32_t coeff_1b = -56; // 56.24;
-    int32_t coeff_1c = 11;  // 11.25
-    int16_t coeff_2 = 135;
-
-    int16_t angle = 0;
-
-    int32_t r;
-    int32_t r3;
-
-    int16_t y_abs_fp = y_fp;
-    if (y_abs_fp < 0)
-        y_abs_fp = -y_abs_fp;
-
-    if (y_fp == 0)
-    {
-        if (x_fp >= 0)
-        {
-            angle = 0;
-        }
-        else
-        {
-            angle = 180;
-        }
-    }
-    else if (x_fp >= 0)
-    {
-        r = (((int32_t)(x_fp - y_abs_fp)) << MULTIPLY_FP_RESOLUTION_BITS) /
-((int32_t)(x_fp + y_abs_fp));
-
-        r3 = r * r;
-        r3 =  r3 >> MULTIPLY_FP_RESOLUTION_BITS;
-        r3 *= r;
-        r3 =  r3 >> MULTIPLY_FP_RESOLUTION_BITS;
-        r3 *= coeff_1c;
-        angle = (int16_t) (     coeff_1 + ((coeff_1b * r + r3) >>
-MULTIPLY_FP_RESOLUTION_BITS)   );
-    }
-    else
-    {
-        r = (((int32_t)(x_fp + y_abs_fp)) << MULTIPLY_FP_RESOLUTION_BITS) /
-((int32_t)(y_abs_fp - x_fp));
-        r3 = r * r;
-        r3 =  r3 >> MULTIPLY_FP_RESOLUTION_BITS;
-        r3 *= r;
-        r3 =  r3 >> MULTIPLY_FP_RESOLUTION_BITS;
-        r3 *= coeff_1c;
-        angle = coeff_2 + ((int16_t)    (((coeff_1b * r + r3) >>
-MULTIPLY_FP_RESOLUTION_BITS))   );
-    }
-
-    if (y_fp < 0)
-        return (360-angle);     // negate if in quad III or IV
-    else
-        return (angle);
-}
-
-
-//***********************************TX ISR******************************************
+//***********************************************************************************
+//                              TX ISR
+//***********************************************************************************
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=USCIAB0TX_VECTOR
 __interrupt void USCI0TX_ISR(void)
@@ -479,16 +248,15 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
     if(state == state3 && finishIFG == 1){  // For script
         UCA0TXBUF = finish_str[tx_index++];                 // TX next character
 
-        if (tx_index == sizeof step_str - 1) {   // TX over?
+        if (tx_index == sizeof step_str - 1) {   // TX over? send FIN
             tx_index=0;
             IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
             stateStepp = stateDefault;
             LPM0_EXIT;
         }
     }
-
     if (state == state3 && finishIFG == 0){  // For script
-        UCA0TXBUF = step_str[tx_index++];                 // TX next character
+        UCA0TXBUF = step_str[tx_index++];                 // TX next character send step cunter
 
         if (tx_index == sizeof step_str - 1) {   // TX over?
             tx_index=0;
@@ -507,24 +275,23 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
             LPM0_EXIT;
         }
     }
-    else if (stateIFG && state == state1){  // Send Push Button state
-        if(MSBIFG) UCA0TXBUF = (state_changed[i++]>>8) & 0xFF;
-        else UCA0TXBUF = state_changed[i] & 0xFF;
+    else if (!dataIFG && state == state1){  // Send Push Button state
+        if(MSBIFG) UCA0TXBUF = (state_changed[i]>>8) & 0xFF;// send msb first
+        else UCA0TXBUF = (state_changed[i++]) & 0xFF;   //send lsb after
         MSBIFG ^= 1;
 
         if (i == 2) {  // TX over?
             i=0;
             IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
             START_TIMERA0(10000);
-            stateIFG = 0;
+            dataIFG = 1;
             LPM0_EXIT;
         }
     }
-    else if(!stateIFG && state == state1){ //send data for painter!!
-        if(MSBIFG) UCA0TXBUF = (Vr[i++]>>8) & 0xFF;
-        else UCA0TXBUF = Vr[i] & 0xFF;
+    else if(dataIFG && state == state1){ //send data for painter!!
+        if(MSBIFG) UCA0TXBUF = (Vr[i]>>8) & 0xFF;   // send msb first
+        else UCA0TXBUF = (Vr[i++]) & 0xFF;          //send lsb after
         MSBIFG ^= 1;
-
         if (i == 2) {  // TX over?
             i=0;
             IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
@@ -533,7 +300,9 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
         }
     }
 }
-//***********************************RX ISR******************************************
+//***********************************************************************************
+//                              RX ISR
+//***********************************************************************************
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=USCIAB0RX_VECTOR
 __interrupt void USCI0RX_ISR(void)
@@ -598,32 +367,190 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
         file.num_of_files = 3;
     }
 
-
     // If's for states
-    if (stringFromPC[0] == 'm') {state = state0; stateStepp=stateDefault; rotateIFG = 0; j = 0;}
-    else if (stringFromPC[0] == 'P') { state = state1; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  //Was p
-    else if (stringFromPC[0] == 'C') { state = state2; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  //Was c
-    else if (stringFromPC[0] == 's') { state = state3; stateStepp=stateDefault; rotateIFG = 0; j = 0;}
+    if (stringFromPC[0] == 'm') {state = state0; stateStepp=stateDefault; rotateIFG = 0; j = 0;}        //Manual control
+    else if (stringFromPC[0] == 'P') { state = state1; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  //Paint
+    else if (stringFromPC[0] == 'C') { state = state2; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  //Calibrate
+    else if (stringFromPC[0] == 'S') { state = state3; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  //Script
 
     else if (stringFromPC[0] == 'A'){ stateStepp = stateAutoRotate; rotateIFG = 1; j = 0;}// Auto Rotate
     else if (stringFromPC[0] == 'M'){ stateStepp = stateStopRotate; rotateIFG = 0; j = 0;}// Stop Rotate
     else if (stringFromPC[0] == 'J'){ stateStepp = stateJSRotate; j = 0;}// JoyStick Rotatefixed pmsp430
 
-
     LPM0_EXIT;
 }
-
 //*********************************************************************
 //            Port1 Interrupt Service Routine
 //*********************************************************************
 #pragma vector=PORT1_VECTOR
-  __interrupt void Joystick_handler(void){
-      IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
+  __interrupt void Joystick_handler(void){ ///Pressing doesn't work so right now it's the pb0 key
       delay(debounceVal);
-
+      IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
       if(JoyStickIntPend & BIT5){ //int at P1.5
-          stateIFG = 1; // send state!
+          dataIFG = 0; // send state!
           JoyStickIntPend &= ~BIT5;
       }
-      IE2 |= UCA0TXIE;                       // enable USCI_A0 TX interrupt
+     IE2 |= UCA0TXIE;                       // enable USCI_A0 TX interrupt
+  }
+//******************************************************************
+// send a command to the LCD
+//******************************************************************
+void lcd_cmd(unsigned char c){
+
+  LCD_WAIT; // may check LCD busy flag, or just delay a little, depending on lcd.h
+  if (LCD_MODE == FOURBIT_MODE)
+  {
+      LCD_DATA_WRITE &= ~OUTPUT_DATA;// clear bits before new write
+      LCD_DATA_WRITE |= ((c >> 4) & 0x0F) << LCD_DATA_OFFSET;
+      lcd_strobe();
+      LCD_DATA_WRITE &= ~OUTPUT_DATA;
+      LCD_DATA_WRITE |= (c & (0x0F)) << LCD_DATA_OFFSET;
+      lcd_strobe();
+  }
+  else
+  {
+      LCD_DATA_WRITE = c;
+      lcd_strobe();
+  }
+}
+//******************************************************************
+// send data to the LCD
+//******************************************************************
+void lcd_data(unsigned char c){
+
+  LCD_WAIT; // may check LCD busy flag, or just delay a little, depending on lcd.h
+  LCD_DATA_WRITE &= ~OUTPUT_DATA;
+  LCD_RS(1);
+  if (LCD_MODE == FOURBIT_MODE)
+  {
+          LCD_DATA_WRITE &= ~OUTPUT_DATA;
+          LCD_DATA_WRITE |= ((c >> 4) & 0x0F) << LCD_DATA_OFFSET;
+          lcd_strobe();
+          LCD_DATA_WRITE &= (0xF0 << LCD_DATA_OFFSET) | (0xF0 >> 8 - LCD_DATA_OFFSET);
+          LCD_DATA_WRITE &= ~OUTPUT_DATA;
+          LCD_DATA_WRITE |= (c & 0x0F) << LCD_DATA_OFFSET;
+          lcd_strobe();
+  }
+  else
+  {
+          LCD_DATA_WRITE = c;
+          lcd_strobe();
+  }
+
+  LCD_RS(0);
+}
+//******************************************************************
+// write a string of chars to the LCD
+//******************************************************************
+void lcd_puts(const char * s){
+  while(*s)
+      lcd_data(*s++);
+}
+//******************************************************************
+// initialize the LCD
+//******************************************************************
+void lcd_init(){
+
+  char init_value;
+  if (LCD_MODE == FOURBIT_MODE) init_value = 0x3 << LCD_DATA_OFFSET;
+  else init_value = 0x3F;
+
+  LCD_RS_DIR(OUTPUT_PIN);
+  LCD_EN_DIR(OUTPUT_PIN);
+  LCD_RW_DIR(OUTPUT_PIN);
+  LCD_DATA_DIR |= OUTPUT_DATA;
+  LCD_RS(0);
+  LCD_EN(0);
+  LCD_RW(0);
+
+  DelayMs(15);
+  LCD_DATA_WRITE &= ~OUTPUT_DATA;
+  LCD_DATA_WRITE |= init_value;
+  lcd_strobe();
+  DelayMs(5);
+  LCD_DATA_WRITE &= ~OUTPUT_DATA;
+  LCD_DATA_WRITE |= init_value;
+  lcd_strobe();
+  DelayUs(200);
+  LCD_DATA_WRITE &= ~OUTPUT_DATA;
+  LCD_DATA_WRITE |= init_value;
+  lcd_strobe();
+
+  if (LCD_MODE == FOURBIT_MODE){
+      LCD_WAIT; // may check LCD busy flag, or just delay a little, depending on lcd.h
+      LCD_DATA_WRITE &= ~OUTPUT_DATA;
+      LCD_DATA_WRITE |= 0x2 << LCD_DATA_OFFSET; // Set 4-bit mode
+      lcd_strobe();
+      lcd_cmd(0x28); // Function Set
+  }
+  else lcd_cmd(0x3C); // 8bit,two lines,5x10 dots
+
+  lcd_cmd(0xF); //Display On, Cursor On, Cursor Blink
+  lcd_cmd(0x1); //Display Clear
+  lcd_cmd(0x6); //Entry Mode
+  lcd_cmd(0x80); //Initialize DDRAM address to zero
+}
+//******************************************************************
+// lcd strobe functions
+//******************************************************************
+void lcd_strobe(){
+LCD_EN(1);
+asm("NOP");
+// asm("NOP");
+LCD_EN(0);
+}
+// ------------------------------------------------------------------
+//                     Polling delays
+//---------------------------------------------------------------------
+//******************************************************************
+// Delay usec functions
+//******************************************************************
+void DelayUs(unsigned int cnt){
+
+  unsigned char i;
+  for(i=cnt ; i>0 ; i--) asm("Nope"); // tha command asm("nop") takes raphly 1usec
+}
+//******************************************************************
+// Delay msec functions
+//******************************************************************
+void DelayMs(unsigned int cnt){
+
+  unsigned char i;
+  for(i=cnt ; i>0 ; i--) DelayUs(1000); // tha command asm("nop") takes raphly 1usec
+
+}
+//******************************************************************
+//            Polling based Delay function
+//******************************************************************
+void delay(unsigned int t){  //
+  volatile unsigned int i;
+
+  for(i=t; i>0; i--);
+}
+//---------------------------------------------------------------------
+//            Enter from LPM0 mode
+//---------------------------------------------------------------------
+void enterLPM(unsigned char LPM_level){
+  if (LPM_level == 0x00)
+    _BIS_SR(LPM0_bits);     /* Enter Low Power Mode 0 */
+      else if(LPM_level == 0x01)
+    _BIS_SR(LPM1_bits);     /* Enter Low Power Mode 1 */
+      else if(LPM_level == 0x02)
+    _BIS_SR(LPM2_bits);     /* Enter Low Power Mode 2 */
+  else if(LPM_level == 0x03)
+    _BIS_SR(LPM3_bits);     /* Enter Low Power Mode 3 */
+      else if(LPM_level == 0x04)
+    _BIS_SR(LPM4_bits);     /* Enter Low Power Mode 4 */
+}
+//---------------------------------------------------------------------
+//            Enable interrupts
+//---------------------------------------------------------------------
+void enable_interrupts(){
+_BIS_SR(GIE);
+}
+//---------------------------------------------------------------------
+//            Disable interrupts
+//---------------------------------------------------------------------
+void disable_interrupts(){
+_BIC_SR(GIE);
 }
